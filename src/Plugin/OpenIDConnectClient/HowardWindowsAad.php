@@ -16,7 +16,7 @@ use GuzzleHttp\Exception\RequestException;
  *
  * @OpenIDConnectClient(
  *   id = "windows_aad",
- *   label = @Translation("Windows Azure AD")
+ *   label = @Translation("Howard Windows Azure AD")
  * )
  */
 class HowardWindowsAad extends OpenIDConnectClientBase {
