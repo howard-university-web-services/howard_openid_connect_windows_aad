@@ -2,14 +2,24 @@
   "name": "howard/howard_openid_connect_windows_aad",
   "type": "drupal-module",
   "description": "A CTools plugin that adds a Howard University specific Windows Azure AD client to OpenID Connect.",
-  "keywords": [
-    "Drupal"
-  ],
+  "keywords": ["Drupal"],
+  "homepage": "https://github.com/howard-university-web-services/howard_openid_connect_windows_aad",
   "license": "GPL-2.0+",
-  "homepage": "https://www.drupal.org/project/howard_openid_connect_windows_aad",
   "minimum-stability": "dev",
+  "authors": [
+      {
+        "name": "Dan Rogers",
+        "homepage": "https://www.drupal.org/u/dan_rogers",
+        "role": "Maintainer"
+      }
+  ],
   "support": {
-    "issues": "https://www.drupal.org/project/issues/howard_openid_connect_windows_aad",
-    "source": "http://cgit.drupalcode.org/howard_openid_connect_windows_aad"
+      "issues": "https://github.com/howard-university-web-services/howard_openid_connect_windows_aad/issues",
+      "source": "https://github.com/howard-university-web-services/howard_openid_connect_windows_aad/"
+  },
+  "extra": {
+      "branch-alias": {
+      "8.x-1.x": "1.x-dev"
+      }
   }
 }
