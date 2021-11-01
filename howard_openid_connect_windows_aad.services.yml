@@ -1,0 +1,5 @@
+services:
+  howard_openid_connect_windows_aad.route_subscriber:
+    class: \Drupal\howard_openid_connect_windows_aad\Routing\HowardWindowsAadSSORouteSubscriber
+    tags:
+      - { name: event_subscriber }
