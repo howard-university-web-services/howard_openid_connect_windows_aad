@@ -1,4 +1,4 @@
-# Howard Paragraphs
+# Howard OpenID Connect Windows Azure Active Directory
 
 This small module is a CTools plugin for the great module OpenID Connect and
 focuses on integration with Windows Azure AD. This is a custom module based on
