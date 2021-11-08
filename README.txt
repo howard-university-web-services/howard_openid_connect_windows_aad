@@ -11,6 +11,11 @@ This module, and sub-modules, contain markup only (no js or css), those should b
 - [idfive Component Library](https://bitbucket.org/idfivellc/idfive-component-library)
 - [idfive Component Library D8 Theme](https://bitbucket.org/idfivellc/idfive-component-library-d8-theme)
 
+## Features
+
+- Provides howard specific customizations to auth against the HU Azure openid apps.
+- Hides local password fields, as well as a few others on the user edit and registration forms.
+
 ## Installation and Updates
 
 ### Install Via Composer
