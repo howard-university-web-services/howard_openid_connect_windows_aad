@@ -21,6 +21,3 @@ howard_openid_connect_windows_aad.settings.window_aad:
         token_endpoint_wa:
           type: string
           label: 'Token endpoint'
-        userinfo_endpoint_wa:
-          type: string
-          label: 'Userinfo endpoint'

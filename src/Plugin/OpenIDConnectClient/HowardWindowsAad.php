@@ -66,75 +66,11 @@ class HowardWindowsAad extends OpenIDConnectClientBase {
         ],
       ],
     ];
-    $form['group_mapping']['method'] = [
-      '#type' => 'radios',
-      '#title' => $this->t('Method for mapping AD groups to roles'),
-      '#options' => [
-        0 => $this->t('Automatic (AD group names or ids identically match Drupal role names)'),
-        1 => $this->t('Manual (Specify which AD groups map to which Drupal roles)'),
-      ],
-      '#default_value' => !empty($this->configuration['group_mapping']['method']) ? $this->configuration['group_mapping']['method'] : 0,
-      '#description' => $this->t('Note: For name mapping to function the Azure AD Graph or Windows Graph APIs must be selected as a User endpoint. Otherwise only mapping based on Group Object IDs can be used.'),
-    ];
     $form['group_mapping']['mappings'] = [
       '#title' => $this->t('Manual mappings'),
       '#type' => 'textarea',
       '#default_value' => $this->configuration['group_mapping']['mappings'],
       '#description' => $this->t('Add one role|group(s) mapping per line. Role and Group should be separated by "|". Multiple groups can be mapped to a single role on the same line using ";" to separate the groups. Ideally you should use the group id since it is immutable, but the title (displayName) may also be used.'),
-      '#states' => [
-        'invisible' => [
-          ':input[name="clients[windows_aad][settings][group_mapping][method]"]' => ['value' => 0],
-        ],
-      ],
-    ];
-    $form['group_mapping']['strict'] = [
-      '#type' => 'checkbox',
-      '#title' => $this->t('Only allow users to have roles that map to an AD group they are a member of.'),
-      '#default_value' => !empty($this->configuration['group_mapping']['strict']) ? $this->configuration['group_mapping']['strict'] : '',
-      '#description' => $this->t('Removes roles from a Drupal user account that do not map to AD groups the user is a member of. Also, with this enabled you can not grant unmapped roles to a user through the usual Drupal user/role interface such as editing a user account. Note: Only affects users with connected AD accounts.'),
-    ];
-    $form['userinfo_graph_api_wa'] = [
-      '#title' => $this->t('User info endpoint configuration'),
-      '#type' => 'radios',
-      '#default_value' => !empty($this->configuration['userinfo_graph_api_wa']) ? $this->configuration['userinfo_graph_api_wa'] : 0,
-      '#options' => [
-        0 => $this->t('Alternate or no user endpoint'),
-        1 => $this->t('Azure AD Graph API (v1.6)'),
-        2 => $this->t('Windows Graph API (v1.0)')],
-      '#description' => $this->t('Most user/group info can be returned in the access token response through proper claims/permissions configuration for your app registration within Azure AD. If this is the case for your setup then you can choose "Alternate or no user endpoint" and leave blank the dependent "Alternate userinfo endpoint" text box. Otherwise you can choose to use the Azure AD graph API or the Windows Graph API (recommended) to retrieve user and/or graph info.'),
-    ];
-    $form['userinfo_endpoint_wa'] = [
-      '#title' => $this->t('Alternate UserInfo endpoint'),
-      '#type' => 'textfield',
-      '#default_value' => $this->configuration['userinfo_endpoint_wa'],
-      '#states' => [
-        'visible' => [
-          ':input[name="clients[windows_aad][settings][userinfo_graph_api_wa]"]' => ['value' => 0],
-        ],
-      ],
-    ];
-    $form['userinfo_graph_api_use_other_mails'] = [
-      '#title' => $this->t('Use Graph API otherMails property for email address'),
-      '#type' => 'checkbox',
-      '#default_value' => !empty($this->configuration['userinfo_graph_api_use_other_mails']) ? $this->configuration['userinfo_graph_api_use_other_mails'] : '',
-      '#description' => $this->t('Find the first occurrence of an email address in the Graph otherMails property and use this as email address.'),
-      '#states' => [
-        'visible' => [
-          ':input[name="clients[windows_aad][settings][userinfo_graph_api_wa]"]' => ['value' => 1],
-        ],
-      ],
-    ];
-    $form['userinfo_update_email'] = [
-      '#title' => $this->t('Update email address in user profile'),
-      '#type' => 'checkbox',
-      '#default_value' => !empty($this->configuration['userinfo_update_email']) ? $this->configuration['userinfo_update_email'] : '',
-      '#description' => $this->t('If email address has been changed for existing user, save the new value to the user profile.'),
-    ];
-    $form['hide_email_address_warning'] = [
-      '#title' => $this->t('Hide missing email address warning'),
-      '#type' => 'checkbox',
-      '#default_value' => !empty($this->configuration['hide_email_address_warning']) ? $this->configuration['hide_email_address_warning'] : '',
-      '#description' => $this->t('By default, when email address is not found, a message will appear on the screen. This option hides that message (as it might be confusing for end users).'),
     ];
 
     return $form;
@@ -151,7 +87,6 @@ class HowardWindowsAad extends OpenIDConnectClientBase {
     return [
       'authorization' => $this->configuration['authorization_endpoint_wa'],
       'token' => $this->configuration['token_endpoint_wa'],
-      'userinfo' => $this->configuration['userinfo_endpoint_wa'],
     ];
   }
 
@@ -189,17 +124,6 @@ class HowardWindowsAad extends OpenIDConnectClientBase {
         'grant_type' => 'authorization_code',
       ],
     ];
-
-    // Add a Graph API as resource if an option is selected.
-    /*switch ($this->configuration['userinfo_graph_api_wa']) {
-      case 1:
-        $request_options['form_params']['resource'] = 'https://graph.windows.net';
-        break;
-
-      case 2:
-        $request_options['form_params']['resource'] = 'https://graph.microsoft.com';
-        break;
-    }*/
 
     /* @var \GuzzleHttp\ClientInterface $client */
     $client = $this->httpClient;
@@ -240,27 +164,10 @@ class HowardWindowsAad extends OpenIDConnectClientBase {
    */
   public function retrieveUserInfo($access_token) {
 
-    // Determine if we use Graph API or default O365 Userinfo as this will
-    // affect the data we collect and use in the Userinfo array.
-    switch ($this->configuration['userinfo_graph_api_wa']) {
-      case 1:
-        $userinfo = $this->buildUserinfo($access_token, 'https://graph.windows.net/me?api-version=1.6', 'userPrincipalName', 'displayName');
-        break;
-
-      case 2:
-        $userinfo = $this->buildUserinfo($access_token, 'https://graph.microsoft.com/v1.0/me', 'userPrincipalName', 'displayName');
-        break;
-
-      default:
-        $endpoints = $this->getEndpoints();
-        if ($endpoints['userinfo']) {
-          $userinfo = $this->buildUserinfo($access_token, $endpoints['userinfo'], 'upn', 'name');
-        }
-        else {
-          $userinfo = array();
-        }
-        break;
-    }
+    // Get user info from microsoft graph api
+    $userinfo = $this->buildUserinfo($access_token, 'https://graph.microsoft.com/v1.0/me?$select=id,displayName,givenName,surname,jobTitle,mail,userPrincipalName,officeLocation,onPremisesExtensionAttributes', 'userPrincipalName', 'displayName');
+    // TEMP LOG
+    \Drupal::logger('howard_aad_userinfo_retrieved_from_api')->notice('<pre><code>' . print_r($userinfo, TRUE) . '</code></pre>');
 
     // If AD group to Drupal role mapping has been enabled then attach group
     // data from a graph API if configured to do so.
@@ -269,16 +176,14 @@ class HowardWindowsAad extends OpenIDConnectClientBase {
     }
 
     // Check to see if we have changed email data, O365_connect doesn't
-    // give us the possibility to add a mapping for it, so we do the change
-    // now, first checking if this is wanted by checking the setting for it.
-    if ($userinfo && $this->configuration['userinfo_update_email'] == 1) {
-      /** @var \Drupal\user\UserInterface $user */
-      $user = user_load_by_name($userinfo['name']);
+    // give us the possibility to add a mapping for it, so we do the change now.
 
-      if ($user && ($user->getEmail() != $userinfo['email'])) {
-        $user->setEmail($userinfo['email']);
-        $user->save();
-      }
+    /** @var \Drupal\user\UserInterface $user */
+    $user = user_load_by_name($userinfo['name']);
+
+    if ($user && ($user->getEmail() != $userinfo['email'])) {
+      $user->setEmail($userinfo['email']);
+      $user->save();
     }
 
     return $userinfo;
@@ -327,28 +232,17 @@ class HowardWindowsAad extends OpenIDConnectClientBase {
 
       // Azure provides 'mail' for userinfo vs email.
       if (!isset($profile_data['mail'])) {
-        // See if we have the Graph otherMails property and use it if available,
-        // if not, add the principal name as email instead, so Drupal still will
+        // if not, add the principal name as email, so Drupal still will
         // create the user anyway.
-        if ($this->configuration['userinfo_graph_api_use_other_mails'] == 1) {
-          if (!empty($profile_data['otherMails'])) {
-            // Use first occurrence of otherMails attribute.
-            $profile_data['email'] = current($profile_data['otherMails']);
-          }
-        }
-        else {
-          // Show message to user.
-          if ($this->configuration['hide_email_address_warning'] <> 1) {
-            \Drupal::messenger()->addWarning(t('Email address not found in UserInfo. Used username instead, please check this in your profile.'));
-          }
-          // Write watchdog warning.
-          $variables = ['@user' => $profile_data[$upn]];
 
-          $this->loggerFactory->get('howard_openid_connect_windows_aad')
-            ->warning('Email address of user @user not found in UserInfo. Used username instead, please check.', $variables);
+        // Write watchdog warning.
+        $variables = ['@user' => $profile_data[$upn]];
 
-          $profile_data['email'] = $profile_data[$upn];
-        }
+        $this->loggerFactory->get('howard_openid_connect_windows_aad')
+          ->warning('Email address of user @user not found in UserInfo. Used username instead, please check.', $variables);
+
+        $profile_data['email'] = $profile_data[$upn];
+
       }
       else {
         // OpenID Connect module expects the 'email' token for userinfo.
@@ -363,6 +257,7 @@ class HowardWindowsAad extends OpenIDConnectClientBase {
       $this->loggerFactory->get('howard_openid_connect_windows_aad')
         ->error('Could not retrieve user profile information. Details: @error_message', $variables);
     }
+
     return $profile_data;
   }
 
@@ -379,20 +274,7 @@ class HowardWindowsAad extends OpenIDConnectClientBase {
     // By default or if an error occurs return empty group information.
     $group_data = [];
 
-    switch ($this->configuration['userinfo_graph_api_wa']) {
-      case 1:
-        $uri = 'https://graph.windows.net/me/memberOf?api-version=1.6';
-        break;
-
-      case 2:
-        $uri = 'https://graph.microsoft.com/v1.0/me/memberOf';
-        break;
-
-      default:
-        $uri = false;
-        break;
-    }
-
+    $uri = 'https://graph.microsoft.com/v1.0/me/memberOf';
     if ($uri) {
       // Perform the request.
       $options = [
@@ -423,4 +305,5 @@ class HowardWindowsAad extends OpenIDConnectClientBase {
     // Return group information or an empty array.
     return $group_data;
   }
+
 }
