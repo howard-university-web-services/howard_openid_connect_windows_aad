@@ -175,14 +175,19 @@ class HowardWindowsAad extends OpenIDConnectClientBase {
       $userinfo['groups'] = $this->retrieveGroupInfo($access_token);
     }
 
-    // Check to see if we have changed email data, O365_connect doesn't
-    // give us the possibility to add a mapping for it, so we do the change now.
-
     /** @var \Drupal\user\UserInterface $user */
     $user = user_load_by_name($userinfo['name']);
 
+    // Check to see if we have changed email data, O365_connect doesn't
+    // give us the possibility to add a mapping for it, so we do the change now.
     if ($user && ($user->getEmail() != $userinfo['email'])) {
       $user->setEmail($userinfo['email']);
+      $user->save();
+    }
+
+    // If this is a site that stores Howard ID's, like for profiles.howard, set it here as well.
+    if ($user && $user->hasField('field_howard_university_id')) {
+      $user->set('field_howard_university_id', $userinfo['onPremisesExtensionAttributes']['extensionAttribute2']);
       $user->save();
     }
 
