@@ -186,12 +186,43 @@ class HowardWindowsAad extends OpenIDConnectClientBase {
     }
 
     // If this is a site that stores Howard ID's, like for profiles.howard, set it here as well.
+    // Also look for a profile with the same ID, and assign this user as owner.
     if ($user && $user->hasField('field_howard_university_id')) {
-      $user->set('field_howard_university_id', $userinfo['onPremisesExtensionAttributes']['extensionAttribute2']);
+      $howard_id = $userinfo['onPremisesExtensionAttributes']['extensionAttribute2'];
+      $user->set('field_howard_university_id', $howard_id);
       $user->save();
+      $profile = $this->getProfileForUser($howard_id);
+      if ($profile !== NULL) {
+        $profile->setOwner($user);
+        $profile->save();
+      }
     }
 
     return $userinfo;
+  }
+
+  /**
+   * Helper function to set the owner of a profile, one that shares the same howard ID.
+   *
+   * @param string $howard_id
+   *   The Howard ID of the just logged in user.
+   *
+   * @return array
+   *   The userinfo array. Empty array if unsuccessful.
+   */
+  public function getProfileForUser($howard_id) {
+    $storage = \Drupal::getContainer()->get('entity_type.manager')->getStorage('node');
+    $query = $storage->getQuery();
+    $query = $query->condition('type', 'profile')
+      ->condition('field_howard_university_id', $howard_id, '=')
+      ->sort('created', 'ASC')
+      ->range(0, 1)
+      ->accessCheck(FALSE);
+    $nids = $query->execute();
+    $results = $storage->loadMultiple($nids);
+    if ($results) {
+      return reset($results);
+    }
   }
 
   /**
