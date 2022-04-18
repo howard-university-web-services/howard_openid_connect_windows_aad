@@ -164,10 +164,11 @@ class HowardWindowsAad extends OpenIDConnectClientBase {
    */
   public function retrieveUserInfo($access_token) {
 
-    // Get user info from microsoft graph api
+    // Get user info from microsoft graph api.
     $userinfo = $this->buildUserinfo($access_token, 'https://graph.microsoft.com/v1.0/me?$select=id,displayName,givenName,surname,jobTitle,mail,userPrincipalName,officeLocation,onPremisesExtensionAttributes', 'userPrincipalName', 'displayName');
+
     // TEMP LOG
-    \Drupal::logger('howard_aad_userinfo_retrieved_from_api')->notice('<pre><code>' . print_r($userinfo, TRUE) . '</code></pre>');
+    // \Drupal::logger('howard_aad_userinfo_retrieved_from_api')->notice('<pre><code>' . print_r($userinfo, TRUE) . '</code></pre>');
 
     // If AD group to Drupal role mapping has been enabled then attach group
     // data from a graph API if configured to do so.
@@ -175,54 +176,7 @@ class HowardWindowsAad extends OpenIDConnectClientBase {
       $userinfo['groups'] = $this->retrieveGroupInfo($access_token);
     }
 
-    /** @var \Drupal\user\UserInterface $user */
-    $user = user_load_by_name($userinfo['name']);
-
-    // Check to see if we have changed email data, O365_connect doesn't
-    // give us the possibility to add a mapping for it, so we do the change now.
-    if ($user && ($user->getEmail() != $userinfo['email'])) {
-      $user->setEmail($userinfo['email']);
-      $user->save();
-    }
-
-    // If this is a site that stores Howard ID's, like for profiles.howard, set it here as well.
-    // Also look for a profile with the same ID, and assign this user as owner.
-    if ($user && $user->hasField('field_howard_university_id')) {
-      $howard_id = $userinfo['onPremisesExtensionAttributes']['extensionAttribute2'];
-      $user->set('field_howard_university_id', $howard_id);
-      $user->save();
-      $profile = $this->getProfileForUser($howard_id);
-      if ($profile !== NULL) {
-        $profile->setOwner($user);
-        $profile->save();
-      }
-    }
-
     return $userinfo;
-  }
-
-  /**
-   * Helper function to set the owner of a profile, one that shares the same howard ID.
-   *
-   * @param string $howard_id
-   *   The Howard ID of the just logged in user.
-   *
-   * @return array
-   *   The userinfo array. Empty array if unsuccessful.
-   */
-  public function getProfileForUser($howard_id) {
-    $storage = \Drupal::getContainer()->get('entity_type.manager')->getStorage('node');
-    $query = $storage->getQuery();
-    $query = $query->condition('type', 'profile')
-      ->condition('field_howard_university_id', $howard_id, '=')
-      ->sort('created', 'ASC')
-      ->range(0, 1)
-      ->accessCheck(FALSE);
-    $nids = $query->execute();
-    $results = $storage->loadMultiple($nids);
-    if ($results) {
-      return reset($results);
-    }
   }
 
   /**
