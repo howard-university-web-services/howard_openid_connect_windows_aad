@@ -9,6 +9,7 @@ use Drupal\user\Entity\Role;
 use Drupal\user\UserInterface;
 use Drupal\user\RoleInterface;
 use Drupal\Core\Form\FormState;
+use Drupal\user\Entity\User;
 
 /**
  * Implements hook_admin_settings_alter().
@@ -202,6 +203,10 @@ function howard_openid_connect_windows_aad_openid_connect_userinfo_save(UserInte
  *
  */
 function howard_openid_connect_windows_aad_form_alter(&$form, &$form_state, $form_id) {
+  
+  // Load current user in order to define some permissions based on role.
+  $user = User::load(\Drupal::currentUser()->id());
+  $roles = $user->getRoles();
 
   if($form_id == 'user_form') {
     // Hide several form fields on user edit.
@@ -216,7 +221,15 @@ function howard_openid_connect_windows_aad_form_alter(&$form, &$form_state, $for
     //$form['account']['current_pass']['#access'] = FALSE;
     //$form['account']['current_pass']['#required'] = 0;
     //$form['account']['pass']['#access'] = FALSE;
-    //$form['account']['pass']['#required'] = 0;
+    
+    if($user->hasRole('administrator')) {
+      // Disable local password field being required for admins. This allows admins to skip, as SSO is desired.
+      $form['account']['pass']['#required'] = 0;
+    } else {
+      // If fields desired to be hidden from non-admins, add them here.
+    }
+    
+    // Hide several standard items we dont wish to use.
     $form['path']['#access'] = FALSE;
     $form['user_picture']['#access'] = FALSE;
     $form['timezone']['#access'] = FALSE;
