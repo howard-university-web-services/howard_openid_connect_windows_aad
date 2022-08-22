@@ -218,6 +218,7 @@ function howard_openid_connect_windows_aad_form_alter(&$form, &$form_state, $for
   $user = User::load(\Drupal::currentUser()->id());
   $roles = $user->getRoles();
 
+  // User edit form.
   if($form_id == 'user_form') {
     // Hide several form fields on user edit.
     $form['path']['#access'] = FALSE;
@@ -241,23 +242,30 @@ function howard_openid_connect_windows_aad_form_alter(&$form, &$form_state, $for
     }
   }
 
+  // User registration form.
   if($form_id == 'user_register_form') {
     // Hide several standard items we dont wish to use.
     $form['path']['#access'] = FALSE;
     $form['user_picture']['#access'] = FALSE;
     $form['timezone']['#access'] = FALSE;
-    
+
     if($user->hasRole('administrator')) {
       // Disable local password field being required for admins. This allows admins to skip, as SSO is desired.
       $form['account']['pass']['#required'] = 0;
     } else {
-      // If fields desired to be hidden from non-admins, add them here.
+      // Unset access to the register form for anyone but admins.
+      \Drupal::messenger()->addMessage('Sorry, you cannot create a local drupal account. You must create an account using Howard University Azure SSO, or have an administrator of this site create an account for you.', 'warning');
       $form['field_password_expiration']['#access'] = FALSE;
       $form['field_last_password_reset']['#access'] = FALSE;
       $form['account']['current_pass']['#access'] = FALSE;
       $form['account']['current_pass']['#required'] = 0;
       $form['account']['pass']['#access'] = FALSE;
       $form['account']['mail']['#access'] = FALSE;
+      $form['account']['name']['#access'] = FALSE;
+      $form['account']['status']['#access'] = FALSE;
+      $form['account']['roles']['#access'] = FALSE;
+      $form['account']['notify']['#access'] = FALSE;
+      $form['actions']['#access'] = FALSE;
     }
   }
 
