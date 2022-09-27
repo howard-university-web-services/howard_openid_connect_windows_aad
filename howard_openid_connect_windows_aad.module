@@ -227,6 +227,13 @@ function howard_openid_connect_windows_aad_form_alter(&$form, &$form_state, $for
     $form['actions']['submit']['#attributes']['class'][] = 'btn--light';
   }
 
+  // User Password reset form.
+  if ($form_id == 'user_pass' ) {
+    $form['actions']['submit']['#value'] = t('Reset Password');
+    $form['actions']['submit']['#attributes']['class'][] = 'btn';
+    $form['actions']['submit']['#attributes']['class'][] = 'btn--light';
+  }
+
   // User edit form.
   if($form_id == 'user_form') {
     // Hide several form fields on user edit.
