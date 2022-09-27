@@ -218,6 +218,15 @@ function howard_openid_connect_windows_aad_form_alter(&$form, &$form_state, $for
   $user = User::load(\Drupal::currentUser()->id());
   $roles = $user->getRoles();
 
+  // User login form. Adjust login text/etc for local admins (non sso).
+  if ($form_id == 'user_login_form' ) {
+    $form['name']['#description'] = t('');
+    $form['pass']['#description'] = t('');
+    $form['actions']['submit']['#value'] = t('Log In as Administrator');
+    $form['actions']['submit']['#attributes']['class'][] = 'btn';
+    $form['actions']['submit']['#attributes']['class'][] = 'btn--light';
+  }
+
   // User edit form.
   if($form_id == 'user_form') {
     // Hide several form fields on user edit.
