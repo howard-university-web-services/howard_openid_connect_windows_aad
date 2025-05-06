@@ -21,7 +21,7 @@ class HowardWindowsAadSSORouteSubscriber extends RouteSubscriberBase {
         $settings = $configuration->get('settings');
         $enabled = $configuration->get('enabled');
       }
-      catch (Exception $exception) {
+      catch (\Exception $exception) {
         // Not important to differentiate between Exceptions here, we just need
         // make it know that something is wrong and we won't enable SSOut.
         $configuration = FALSE;
@@ -35,4 +35,5 @@ class HowardWindowsAadSSORouteSubscriber extends RouteSubscriberBase {
       }
     }
   }
+
 }

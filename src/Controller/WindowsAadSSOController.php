@@ -23,10 +23,12 @@ class WindowsAadSSOController extends ControllerBase {
    */
   protected $logger;
 
-  /*
+  /**
+   * Constructs OpenIDConnectAuthmap object.
+   *
    * @param \Drupal\openid_connect\OpenIDConnectAuthmap $authmap
-   *   The authmap storage.
    */
+
   protected $authmap;
 
   /**
@@ -130,4 +132,5 @@ class WindowsAadSSOController extends ControllerBase {
     // No SSOut so do the usual thing and redirect to the front page.
     return $this->redirect('<front>');
   }
+
 }

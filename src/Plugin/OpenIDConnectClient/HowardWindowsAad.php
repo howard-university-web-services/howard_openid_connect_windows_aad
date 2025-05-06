@@ -37,7 +37,7 @@ class HowardWindowsAad extends OpenIDConnectClientBase {
     $form['enable_single_sign_out'] = [
       '#title' => $this->t('Enable Single Sign Out'),
       '#type' => 'checkbox',
-      '#default_value' => !empty($this->configuration['enable_single_sign_out']) ? $this->configuration['enable_single_sign_out'] : false,
+      '#default_value' => !empty($this->configuration['enable_single_sign_out']) ? $this->configuration['enable_single_sign_out'] : FALSE,
       '#description' => $this->t('Checking this option will enable Single Sign Out to occur so long as the logout url has been set to (http(s)://yoursite.com/openid-connect/windows_aad/signout) in your Azure AD registered app settings. If a user logs out of the Drupal app then they will be logged out of their SSO session elsewhere as well. Conversely if a user signs out of their SSO account elsewhere, such as Office 365, they will also be logged out of this app.'),
     ];
     $form['authorization_endpoint_wa'] = [
@@ -125,7 +125,7 @@ class HowardWindowsAad extends OpenIDConnectClientBase {
       ],
     ];
 
-    /* @var \GuzzleHttp\ClientInterface $client */
+    /** @var \GuzzleHttp\ClientInterface $client */
     $client = $this->httpClient;
 
     try {
@@ -168,8 +168,7 @@ class HowardWindowsAad extends OpenIDConnectClientBase {
     $userinfo = $this->buildUserinfo($access_token, 'https://graph.microsoft.com/v1.0/me?$select=id,displayName,givenName,surname,jobTitle,mail,userPrincipalName,officeLocation,onPremisesExtensionAttributes', 'userPrincipalName', 'displayName');
 
     // TEMP LOG
-    // \Drupal::logger('howard_aad_userinfo_retrieved_from_api')->notice('<pre><code>' . print_r($userinfo, TRUE) . '</code></pre>');
-
+    // \Drupal::logger('howard_aad_userinfo_retrieved_from_api')->notice('<pre><code>' . print_r($userinfo, TRUE) . '</code></pre>');.
     // If AD group to Drupal role mapping has been enabled then attach group
     // data from a graph API if configured to do so.
     if ($this->configuration['map_ad_groups_to_roles']) {
@@ -222,9 +221,8 @@ class HowardWindowsAad extends OpenIDConnectClientBase {
 
       // Azure provides 'mail' for userinfo vs email.
       if (!isset($profile_data['mail'])) {
-        // if not, add the principal name as email, so Drupal still will
+        // If not, add the principal name as email, so Drupal still will
         // create the user anyway.
-
         // Write watchdog warning.
         $variables = ['@user' => $profile_data[$upn]];
 

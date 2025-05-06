@@ -23,6 +23,8 @@ function howard_openid_connect_windows_aad_form_openid_connect_admin_settings_al
  */
 function _howard_openid_connect_windows_aad_form_submit_refresh_routes(&$form, FormState $form_state) {
   $assume_disabled = FALSE;
+  $aad_enabled = FALSE;
+  $sso_enabled = FALSE;
   try {
     $configuration = \Drupal::config('openid_connect.settings.windows_aad');
     $settings = $configuration->get('settings');
@@ -35,12 +37,14 @@ function _howard_openid_connect_windows_aad_form_submit_refresh_routes(&$form, F
   }
 
   // Get clients' enabled status.
-  $aad_checked = (bool) $form_state->getValue(array('clients_enabled', 'windows_aad'));
-  $sso_checked = (bool) $form_state->getValue(array('clients', 'windows_aad', 'settings', 'enable_single_sign_out'));
+  $aad_arr = ['clients_enabled', 'windows_aad'];
+  $sso_arr = ['clients', 'windows_aad', 'settings', 'enable_single_sign_out'];
+  $aad_checked = (bool) $form_state->getValue($aad_arr);
+  $sso_checked = (bool) $form_state->getValue($sso_arr);
 
   // Rebuild routes since we may override the user.logout route for single
   // sign off.
-  if ((!$assume_disabled && ($aad_enabled !== $aad_checked || $sso_enabled !== $sso_checked)) || ($assume_disabled && ((isset($aad_enabled) && $aad_enabled !== $aad_checked) || $aad_checked))) {
+  if ((!$assume_disabled && ($aad_enabled !== $aad_checked || $sso_enabled !== $sso_checked)) || ($assume_disabled && (($aad_enabled !== $aad_checked) || $aad_checked))) {
     \Drupal::logger('howard_openid_connect_windows_aad')->debug('rebuild routes');
     \Drupal::service('router.builder')->setRebuildNeeded();
   }
@@ -78,16 +82,16 @@ function howard_openid_connect_windows_aad_openid_connect_userinfo_save(UserInte
 
   $mapped_roles = $groups = [];
 
-  $user_roles = $account->getRoles(true);
+  $user_roles = $account->getRoles(TRUE);
   $all_roles = Role::loadMultiple();
   unset($all_roles[RoleInterface::ANONYMOUS_ID]);
   unset($all_roles[RoleInterface::AUTHENTICATED_ID]);
 
   // Retrieve a list of previously mapped roles.
-  $UserData = \Drupal::service('user.data');
-  $previous_mapped_roles = $UserData->get('howard_openid_connect_windows_aad', $account->id(), 'mapped_roles');
+  $user_data = \Drupal::service('user.data');
+  $previous_mapped_roles = $user_data->get('howard_openid_connect_windows_aad', $account->id(), 'mapped_roles');
   if (!isset($previous_mapped_roles)) {
-    $previous_mapped_roles = array();
+    $previous_mapped_roles = [];
   }
 
   // Groups found in the user_data returned from the auth request.
@@ -153,7 +157,7 @@ function howard_openid_connect_windows_aad_openid_connect_userinfo_save(UserInte
           $mapped_roles[$key] = $key;
 
           // Automatically unblock ther account, since we know they are the correct person/role desired.
-          if($account->isBlocked()) {
+          if ($account->isBlocked()) {
             $account->activate();
             \Drupal::messenger()->addMessage('Your account was automatically unblocked, or activated because you belong to the administrators group in Howard Universities Azure SSO system. You are now an active administrator on this site, no further action needed.');
             \Drupal::logger('howard_aad_userinfo_retrieved_from_api')->notice('User account automatically unblocked because it matches roles provided.');
@@ -168,7 +172,7 @@ function howard_openid_connect_windows_aad_openid_connect_userinfo_save(UserInte
     $mapped_roles = array_keys($mapped_roles);
   }
 
-  // Determine which mapped roles the user does not already have
+  // Determine which mapped roles the user does not already have.
   $add = array_diff($mapped_roles, $user_roles);
 
   // Only remove roles previously mapped, but no longer are.
@@ -202,49 +206,48 @@ function howard_openid_connect_windows_aad_openid_connect_userinfo_save(UserInte
 
   // Save which roles were mapped so we can properly handle removing mapped
   // roles that change the next time.
-  $UserData->set('howard_openid_connect_windows_aad', $account->id(), 'mapped_roles', $mapped_roles);
+  $user_data->set('howard_openid_connect_windows_aad', $account->id(), 'mapped_roles', $mapped_roles);
 }
-
 
 /**
  * Implements hook_form_alter().
  *
  * Alters the user register form to remove passwords/etc, since we use openid.
- *
  */
 function howard_openid_connect_windows_aad_form_alter(&$form, &$form_state, $form_id) {
-  
+
   // Load current user in order to define some permissions based on role.
   $user = User::load(\Drupal::currentUser()->id());
   $roles = $user->getRoles();
 
   // User login form. Adjust login text/etc for local admins (non sso).
-  if ($form_id == 'user_login_form' ) {
-    $form['name']['#description'] = t('');
-    $form['pass']['#description'] = t('');
+  if ($form_id == 'user_login_form') {
+    $form['name']['#description'] = '';
+    $form['pass']['#description'] = '';
     $form['actions']['submit']['#value'] = t('Log In as Administrator');
     $form['actions']['submit']['#attributes']['class'][] = 'btn';
     $form['actions']['submit']['#attributes']['class'][] = 'btn--light';
   }
 
   // User Password reset form.
-  if ($form_id == 'user_pass' ) {
+  if ($form_id == 'user_pass') {
     $form['actions']['submit']['#value'] = t('Reset Password');
     $form['actions']['submit']['#attributes']['class'][] = 'btn';
     $form['actions']['submit']['#attributes']['class'][] = 'btn--light';
   }
 
   // User edit form.
-  if($form_id == 'user_form') {
+  if ($form_id == 'user_form') {
     // Hide several form fields on user edit.
     $form['path']['#access'] = FALSE;
     $form['user_picture']['#access'] = FALSE;
 
-    if($user->hasRole('administrator')) {
+    if ($user->hasRole('administrator')) {
       // Disable local password field being required for admins. This allows admins to skip, as SSO is desired.
       $form['account']['pass']['#required'] = 0;
       $form['account']['pass']['#description'] = t('<strong>IMPORTANT</strong>: If you are setting local passwords for users, please utilize a strong generated password, such as one form <a href="https://www.strongpasswordgenerator.org/" target="_blank">strongpasswordgenerator.org</a>.');
-    } else {
+    }
+    else {
       $form['field_password_expiration']['#access'] = FALSE;
       $form['field_last_password_reset']['#access'] = FALSE;
       $form['account']['current_pass']['#access'] = FALSE;
@@ -259,16 +262,17 @@ function howard_openid_connect_windows_aad_form_alter(&$form, &$form_state, $for
   }
 
   // User registration form.
-  if($form_id == 'user_register_form') {
+  if ($form_id == 'user_register_form') {
     // Hide several standard items we dont wish to use.
     $form['path']['#access'] = FALSE;
     $form['user_picture']['#access'] = FALSE;
     $form['timezone']['#access'] = FALSE;
 
-    if($user->hasRole('administrator')) {
+    if ($user->hasRole('administrator')) {
       // Disable local password field being required for admins. This allows admins to skip, as SSO is desired.
       $form['account']['pass']['#required'] = 0;
-    } else {
+    }
+    else {
       // Unset access to the register form for anyone but admins.
       \Drupal::messenger()->addMessage('Sorry, you cannot create a local drupal account. You must create an account using Howard University Azure SSO, or have an administrator of this site create an account for you.', 'warning');
       $form['field_password_expiration']['#access'] = FALSE;
