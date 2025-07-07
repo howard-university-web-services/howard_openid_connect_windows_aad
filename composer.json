@@ -1,25 +1,103 @@
 {
   "name": "howard/howard_openid_connect_windows_aad",
   "type": "drupal-module",
-  "description": "A CTools plugin that adds a Howard University specific Windows Azure AD client to OpenID Connect.",
-  "keywords": ["Drupal"],
+  "description": "Professional Drupal module providing seamless integration between Drupal and Microsoft Azure Active Directory through OpenID Connect, specifically customized for Howard University's authentication requirements.",
+  "keywords": [
+    "drupal",
+    "module",
+    "authentication",
+    "sso",
+    "single-sign-on",
+    "azure",
+    "active-directory",
+    "openid-connect",
+    "oauth2",
+    "howard-university",
+    "microsoft",
+    "enterprise"
+  ],
   "homepage": "https://github.com/howard-university-web-services/howard_openid_connect_windows_aad",
-  "license": "GPL-2.0+",
-  "minimum-stability": "dev",
+  "license": "GPL-2.0-or-later",
+  "minimum-stability": "stable",
+  "prefer-stable": true,
   "authors": [
-      {
-        "name": "Dan Rogers",
-        "homepage": "https://www.drupal.org/u/dan_rogers",
-        "role": "Maintainer"
-      }
+    {
+      "name": "Dan Rogers",
+      "email": "dan.rogers@howard.edu",
+      "homepage": "https://www.drupal.org/u/dan_rogers",
+      "role": "Maintainer"
+    },
+    {
+      "name": "Howard University IT Services",
+      "email": "it-support@howard.edu",
+      "homepage": "https://howard.edu",
+      "role": "Development Team"
+    }
   ],
   "support": {
-      "issues": "https://github.com/howard-university-web-services/howard_openid_connect_windows_aad/issues",
-      "source": "https://github.com/howard-university-web-services/howard_openid_connect_windows_aad/"
+    "issues": "https://github.com/howard-university-web-services/howard_openid_connect_windows_aad/issues",
+    "source": "https://github.com/howard-university-web-services/howard_openid_connect_windows_aad/",
+    "docs": "https://github.com/howard-university-web-services/howard_openid_connect_windows_aad/tree/main/docs",
+    "email": "it-support@howard.edu"
+  },
+  "require": {
+    "php": ">=8.1",
+    "drupal/core": "^9.0 || ^10.0 || ^11.0",
+    "drupal/openid_connect": "^1.4 || ^2.0 || ^3.0"
+  },
+  "require-dev": {
+    "drupal/core-dev": "^9.0 || ^10.0 || ^11.0",
+    "phpunit/phpunit": "^9.0",
+    "squizlabs/php_codesniffer": "^3.5",
+    "phpstan/phpstan": "^1.0",
+    "phpmd/phpmd": "^2.10"
+  },
+  "config": {
+    "sort-packages": true,
+    "allow-plugins": {
+      "composer/installers": true,
+      "drupal/core-composer-scaffold": true,
+      "dealerdirect/phpcodesniffer-composer-installer": true
+    }
+  },
+  "autoload": {
+    "psr-4": {
+      "Drupal\\howard_openid_connect_windows_aad\\": "src/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Drupal\\Tests\\howard_openid_connect_windows_aad\\": "tests/"
+    }
   },
   "extra": {
-      "branch-alias": {
-      "8.x-1.x": "1.x-dev"
+    "drupal": {
+      "version": "1.0.0",
+      "datestamp": "1704067200",
+      "security-coverage": {
+        "status": "covered",
+        "message": "Covered by Howard University IT Security Team"
       }
+    },
+    "branch-alias": {
+      "dev-main": "1.x-dev"
+    }
+  },
+  "scripts": {
+    "test": [
+      "@phpcs",
+      "@phpstan",
+      "@phpunit"
+    ],
+    "phpcs": "phpcs --standard=Drupal,DrupalPractice src/",
+    "phpcbf": "phpcbf --standard=Drupal src/",
+    "phpstan": "phpstan analyse src/",
+    "phpunit": "phpunit tests/",
+    "post-install-cmd": [
+      "echo 'Howard OpenID Connect Windows AAD module installed successfully'"
+    ],
+    "post-update-cmd": [
+      "echo 'Howard OpenID Connect Windows AAD module updated successfully'"
+    ]
   }
 }

@@ -1,5 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
+/**
+ * @file
+ * Contains \Drupal\howard_openid_connect_windows_aad\Plugin\OpenIDConnectClient\HowardWindowsAad.
+ */
+
 namespace Drupal\howard_openid_connect_windows_aad\Plugin\OpenIDConnectClient;
 
 use Drupal\Core\Form\FormStateInterface;
@@ -9,28 +16,49 @@ use Drupal\Core\Url;
 use GuzzleHttp\Exception\RequestException;
 
 /**
- * Generic OpenID Connect client.
+ * Howard University Azure Active Directory OpenID Connect client.
  *
- * Used primarily to login to Drupal sites powered by oauth2_server or PHP
- * sites powered by oauth2-server-php.
+ * This client provides integration with Microsoft Azure Active Directory
+ * using the OpenID Connect protocol, specifically customized for Howard
+ * University's authentication requirements.
+ *
+ * Features:
+ * - Single Sign-On (SSO) with Azure Active Directory
+ * - Automatic user creation and profile synchronization
+ * - Group-based role mapping from Azure AD to Drupal roles
+ * - Single Sign-Out (SSO) support
+ * - Comprehensive error handling and logging
+ * - Howard University specific customizations
  *
  * @OpenIDConnectClient(
  *   id = "windows_aad",
  *   label = @Translation("Howard Windows Azure AD")
  * )
+ *
+ * @see https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-protocols-oidc
+ * @see https://www.drupal.org/project/openid_connect
  */
 class HowardWindowsAad extends OpenIDConnectClientBase {
 
   /**
-   * Overrides OpenIDConnectClientBase::settingsForm().
+   * Builds the configuration form for Howard Windows Azure AD settings.
+   *
+   * This method provides configuration options specific to Azure Active
+   * Directory integration, including:
+   * - Single Sign-Out (SSO) enablement
+   * - Custom authorization and token endpoints
+   * - Active Directory group to Drupal role mapping
+   * - Manual group-role mapping configuration
    *
    * @param array $form
-   *   Windows AAD form array containing form elements.
-   * @param Drupal\Core\Form\FormStateInterface $form_state
-   *   Submitted form values.
+   *   The form array containing form elements.
+   * @param \Drupal\Core\Form\FormStateInterface $form_state
+   *   The current state of the form containing submitted values.
    *
    * @return array
-   *   Renderable form array with form elements.
+   *   The modified form array with Azure AD specific configuration elements.
+   *
+   * @see \Drupal\openid_connect\Plugin\OpenIDConnectClientBase::buildConfigurationForm()
    */
   public function buildConfigurationForm(array $form, FormStateInterface $form_state) {
     $form = parent::buildConfigurationForm($form, $form_state);
@@ -77,11 +105,18 @@ class HowardWindowsAad extends OpenIDConnectClientBase {
   }
 
   /**
-   * Overrides OpenIDConnectClientBase::getEndpoints().
+   * Retrieves the Azure AD endpoints for OAuth2/OpenID Connect flows.
+   *
+   * Returns the configured authorization and token endpoints for Azure
+   * Active Directory. These endpoints are used for the OAuth2 authorization
+   * code flow and token exchange.
    *
    * @return array
-   *   Endpoint details with authorization endpoints, user access token and
-   *   userinfo object.
+   *   An associative array containing:
+   *   - 'authorization': The Azure AD authorization endpoint URL
+   *   - 'token': The Azure AD token endpoint URL
+   *
+   * @see https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-oauth2-auth-code-flow
    */
   public function getEndpoints() {
     return [
@@ -91,13 +126,33 @@ class HowardWindowsAad extends OpenIDConnectClientBase {
   }
 
   /**
-   * Implements OpenIDConnectClientInterface::retrieveIDToken().
+   * Exchanges authorization code for access and ID tokens.
+   *
+   * This method implements the OAuth2 authorization code flow by exchanging
+   * the authorization code received from Azure AD for access and ID tokens.
+   * The tokens are used for subsequent API calls and user authentication.
+   *
+   * The method performs the following steps:
+   * 1. Constructs the redirect URI using Drupal's routing system
+   * 2. Prepares the token exchange request with required parameters
+   * 3. Makes a POST request to the Azure AD token endpoint
+   * 4. Parses the response and extracts tokens
+   * 5. Handles errors and logs failures appropriately
    *
    * @param string $authorization_code
-   *   A authorization code string.
+   *   The authorization code received from Azure AD during the OAuth2 flow.
    *
-   * @return array|bool
-   *   A result array or false.
+   * @return array|false
+   *   An associative array containing the tokens on success:
+   *   - 'id_token': The OpenID Connect ID token (JWT)
+   *   - 'access_token': The OAuth2 access token for API calls
+   *   - 'expire': (optional) Token expiration timestamp
+   *   Returns FALSE on failure.
+   *
+   * @throws \GuzzleHttp\Exception\RequestException
+   *   When the HTTP request to Azure AD fails.
+   *
+   * @see https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-oauth2-auth-code-flow#request-an-access-token
    */
   public function retrieveTokens($authorization_code) {
     // Exchange `code` for access token and ID token.
@@ -154,13 +209,38 @@ class HowardWindowsAad extends OpenIDConnectClientBase {
   }
 
   /**
-   * Implements OpenIDConnectClientInterface::retrieveUserInfo().
+   * Retrieves user information from Microsoft Graph API.
+   *
+   * This method fetches comprehensive user profile information from Azure AD
+   * using the Microsoft Graph API. It also optionally retrieves group
+   * membership information for role mapping purposes.
+   *
+   * The method performs the following operations:
+   * 1. Calls Microsoft Graph API to get user profile data
+   * 2. Processes and normalizes the returned user information
+   * 3. Optionally retrieves group membership if role mapping is enabled
+   * 4. Returns a standardized user information array
+   *
+   * User information includes:
+   * - Basic profile data (name, email, job title)
+   * - Office location and organizational attributes
+   * - Group memberships (if enabled)
+   * - Azure AD extension attributes
    *
    * @param string $access_token
-   *   An access token string.
+   *   A valid OAuth2 access token for Microsoft Graph API access.
    *
-   * @return array|bool
-   *   A result array or false.
+   * @return array|false
+   *   An associative array containing user information on success:
+   *   - 'id': Azure AD user identifier
+   *   - 'name': User's display name or username
+   *   - 'email': User's email address
+   *   - 'groups': (optional) Array of group memberships
+   *   - Additional Azure AD profile attributes
+   *   Returns FALSE on failure.
+   *
+   * @see https://docs.microsoft.com/en-us/graph/api/user-get
+   * @see https://docs.microsoft.com/en-us/graph/api/user-list-memberof
    */
   public function retrieveUserInfo($access_token) {
 
@@ -179,19 +259,40 @@ class HowardWindowsAad extends OpenIDConnectClientBase {
   }
 
   /**
-   * Helper function to do the call to the endpoint and build userinfo array.
+   * Builds user information array from Microsoft Graph API response.
+   *
+   * This helper method handles the actual HTTP request to the Microsoft Graph
+   * API and processes the response to create a standardized user information
+   * array. It performs the following operations:
+   *
+   * 1. Makes authenticated GET request to the specified Graph API endpoint
+   * 2. Processes the JSON response and extracts user profile data
+   * 3. Normalizes username using the User Principal Name (UPN)
+   * 4. Handles email address mapping and fallbacks
+   * 5. Provides comprehensive error handling and logging
+   *
+   * The method includes Howard University specific customizations:
+   * - Username extraction from UPN (removes domain suffix)
+   * - Email address validation and fallback mechanisms
+   * - Enhanced error logging for troubleshooting
    *
    * @param string $access_token
-   *   The access token.
+   *   A valid OAuth2 access token for API authentication.
    * @param string $url
-   *   The endpoint we want to send the request to.
+   *   The complete Microsoft Graph API endpoint URL to request.
    * @param string $upn
-   *   The name of the property that holds the Azure username.
+   *   The property name containing the Azure username (userPrincipalName).
    * @param string $name
-   *   The name of the property we want to map to Drupal username.
+   *   The property name to map to Drupal username (displayName).
    *
    * @return array
-   *   The userinfo array. Empty array if unsuccessful.
+   *   The processed user information array with normalized fields.
+   *   Returns empty array if the request fails or encounters errors.
+   *
+   * @throws \GuzzleHttp\Exception\RequestException
+   *   When the HTTP request to Microsoft Graph API fails.
+   *
+   * @see https://docs.microsoft.com/en-us/graph/api/user-get
    */
   private function buildUserinfo($access_token, $url, $upn, $name) {
     $profile_data = [];
@@ -250,13 +351,40 @@ class HowardWindowsAad extends OpenIDConnectClientBase {
   }
 
   /**
-   * Calls a graph api to retrieve teh user's group membership information.
+   * Retrieves user's group membership information from Microsoft Graph API.
+   *
+   * This method fetches the authenticated user's group memberships from
+   * Azure Active Directory using the Microsoft Graph API. The group
+   * information is used for mapping Azure AD groups to Drupal roles.
+   *
+   * The method performs the following operations:
+   * 1. Makes authenticated request to the Graph API memberOf endpoint
+   * 2. Retrieves all groups the user is a member of
+   * 3. Processes the response to extract group identifiers and names
+   * 4. Handles pagination if the user belongs to many groups
+   * 5. Returns structured group data for role mapping
+   *
+   * Group information includes:
+   * - Group object IDs (immutable identifiers)
+   * - Group display names
+   * - Group types and classifications
+   * - Security vs. distribution group distinctions
    *
    * @param string $access_token
-   *   An access token string.
+   *   A valid OAuth2 access token with appropriate Graph API permissions
+   *   (typically User.Read and GroupMember.Read.All or Directory.Read.All).
    *
    * @return array
-   *   An array of group informaion.
+   *   An associative array containing group membership information:
+   *   - 'value': Array of group objects with id, displayName, etc.
+   *   - Additional metadata from the Graph API response
+   *   Returns empty array if request fails or user has no group memberships.
+   *
+   * @throws \GuzzleHttp\Exception\RequestException
+   *   When the HTTP request to Microsoft Graph API fails.
+   *
+   * @see https://docs.microsoft.com/en-us/graph/api/user-list-memberof
+   * @see https://docs.microsoft.com/en-us/graph/permissions-reference#group-permissions
    */
   protected function retrieveGroupInfo($access_token) {
     // By default or if an error occurs return empty group information.

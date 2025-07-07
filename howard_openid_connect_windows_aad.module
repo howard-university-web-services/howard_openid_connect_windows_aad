@@ -1,8 +1,30 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * @file
- * OpenID Connect Windows AAD module file.
+ * Howard OpenID Connect Windows Azure Active Directory module.
+ *
+ * This module provides seamless integration between Drupal and Microsoft
+ * Azure Active Directory using the OpenID Connect protocol. It includes
+ * Howard University specific customizations for authentication, user
+ * management, and role mapping.
+ *
+ * Key features:
+ * - Single Sign-On (SSO) with Azure Active Directory
+ * - Automatic user creation and profile synchronization
+ * - Group-based role mapping from Azure AD to Drupal roles
+ * - Single Sign-Out (SSO) support with route override
+ * - Comprehensive error handling and logging
+ * - Howard University specific authentication flow customizations
+ *
+ * This module extends the base OpenID Connect module with Azure AD specific
+ * functionality and integrates with Howard University's existing authentication
+ * infrastructure and organizational structure.
+ *
+ * @see https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-protocols-oidc
+ * @see https://www.drupal.org/project/openid_connect
  */
 
 use Drupal\user\Entity\Role;
@@ -12,7 +34,18 @@ use Drupal\Core\Form\FormState;
 use Drupal\user\Entity\User;
 
 /**
- * Implements hook_admin_settings_alter().
+ * Implements hook_form_openid_connect_admin_settings_alter().
+ *
+ * Adds route rebuilding functionality to the OpenID Connect admin settings form.
+ * This ensures that route changes (particularly for Single Sign-Out) are properly
+ * applied when the configuration is saved.
+ *
+ * @param array $form
+ *   The OpenID Connect admin settings form array.
+ * @param \Drupal\Core\Form\FormState $form_state
+ *   The current state of the form.
+ * @param string $form_id
+ *   The form ID.
  */
 function howard_openid_connect_windows_aad_form_openid_connect_admin_settings_alter(&$form, FormState $form_state, $form_id) {
   array_unshift($form['#submit'], '_howard_openid_connect_windows_aad_form_submit_refresh_routes');
@@ -52,6 +85,37 @@ function _howard_openid_connect_windows_aad_form_submit_refresh_routes(&$form, F
 
 /**
  * Implements hook_openid_connect_userinfo_save().
+ *
+ * Processes user information after successful Azure AD authentication and
+ * performs Howard University specific user account management including:
+ *
+ * - Email address synchronization from Azure AD
+ * - Group-based role mapping from Azure AD groups to Drupal roles
+ * - Automatic user account activation/blocking based on group membership
+ * - Comprehensive logging of authentication and role assignment events
+ * - User data storage for tracking mapped roles
+ *
+ * This function is called after successful OpenID Connect authentication
+ * and contains the core business logic for Howard University's authentication
+ * and authorization integration with Azure Active Directory.
+ *
+ * Group mapping process:
+ * 1. Validates Azure AD client is enabled and configured for group mapping
+ * 2. Retrieves group information from authentication context
+ * 3. Parses configured group-to-role mappings
+ * 4. Assigns/removes Drupal roles based on Azure AD group membership
+ * 5. Handles special administrator roles and account activation
+ * 6. Stores mapping information for future reference
+ *
+ * @param \Drupal\user\UserInterface $account
+ *   The Drupal user account being processed.
+ * @param array $context
+ *   The OpenID Connect context containing:
+ *   - 'plugin_id': The OpenID Connect client plugin ID
+ *   - 'user_data': User profile information from Azure AD
+ *   - 'userinfo': Additional user information including groups
+ *
+ * @see https://docs.microsoft.com/en-us/graph/api/user-list-memberof
  */
 function howard_openid_connect_windows_aad_openid_connect_userinfo_save(UserInterface $account, array $context) {
 

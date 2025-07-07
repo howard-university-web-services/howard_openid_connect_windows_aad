@@ -1,5 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
+/**
+ * @file
+ * Contains \Drupal\howard_openid_connect_windows_aad\Controller\WindowsAadSSOController.
+ */
+
 namespace Drupal\howard_openid_connect_windows_aad\Controller;
 
 use Drupal\Core\Controller\ControllerBase;
@@ -12,30 +19,48 @@ use Symfony\Component\HttpFoundation\Response;
 use Drupal\openid_connect\OpenIDConnectAuthmap;
 
 /**
- * Controller routines for Azure AD single sign out user routes.
+ * Controller for Azure AD Single Sign-On and Single Sign-Out operations.
+ *
+ * This controller handles authentication flows for Howard University's
+ * integration with Microsoft Azure Active Directory, providing:
+ *
+ * - Single Sign-Out (SSO) callback handling
+ * - User logout with Azure AD integration
+ * - Security validation and CSRF protection
+ * - Comprehensive logging and error handling
+ *
+ * The controller integrates with Azure AD's logout endpoints to provide
+ * seamless authentication experiences across Howard University's applications
+ * and Microsoft Office 365 services.
+ *
+ * @see https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-protocols-oidc#single-sign-out
  */
 class WindowsAadSSOController extends ControllerBase {
 
   /**
-   * A logger instance.
+   * The logger service for recording authentication events and errors.
    *
    * @var \Psr\Log\LoggerInterface
    */
   protected $logger;
 
   /**
-   * Constructs OpenIDConnectAuthmap object.
+   * The OpenID Connect authentication mapping service.
    *
-   * @param \Drupal\openid_connect\OpenIDConnectAuthmap $authmap
+   * This service manages the mapping between Drupal user accounts
+   * and external OpenID Connect provider accounts (Azure AD).
+   *
+   * @var \Drupal\openid_connect\OpenIDConnectAuthmap
    */
-
   protected $authmap;
 
   /**
    * Constructs a WindowsAadSSOController object.
    *
    * @param \Psr\Log\LoggerInterface $logger
-   *   A logger instance.
+   *   The logger service for recording authentication events and errors.
+   * @param \Drupal\openid_connect\OpenIDConnectAuthmap $authmap
+   *   The OpenID Connect authentication mapping service.
    */
   public function __construct(LoggerInterface $logger, OpenIDConnectAuthmap $authmap) {
     $this->logger = $logger;
@@ -53,13 +78,33 @@ class WindowsAadSSOController extends ControllerBase {
   }
 
   /**
-   * Single Sign Out callback to log the current user out.
+   * Handles Single Sign-Out callback from Azure Active Directory.
    *
-   * Called by Windows Azure AD when a user logs out of their SSO session from
-   * another application such as Office 365.
+   * This method is called by Azure AD when a user logs out of their SSO
+   * session from another application (such as Office 365 or other Microsoft
+   * services). It implements the OpenID Connect RP-Initiated Logout specification.
+   *
+   * The method performs the following security and validation checks:
+   * 1. Verifies that the Windows AAD client is enabled
+   * 2. Confirms that Single Sign-Out is enabled in configuration
+   * 3. Validates that the current user has a connected Azure AD account
+   * 4. Logs out the user from Drupal if all conditions are met
+   * 5. Returns appropriate HTTP status codes for security
+   *
+   * Security considerations:
+   * - Returns HTTP 403 for misconfigured or potential CSRF attempts
+   * - Logs warnings for suspicious signout attempts
+   * - Only logs out users with valid connected accounts
+   * - Returns HTTP 200 for successful operations
    *
    * @return \Symfony\Component\HttpFoundation\Response
-   *   Either a 200 or 403 response without any content.
+   *   HTTP 200 (OK) response if Single Sign-Out is properly configured
+   *   and user logout is successful or not needed.
+   *   HTTP 403 (Forbidden) response if Single Sign-Out is not enabled
+   *   or appears to be a malicious attempt.
+   *
+   * @see https://openid.net/specs/openid-connect-rpinitiated-1_0.html
+   * @see https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-protocols-oidc#single-sign-out
    */
   public function signout() {
     $configuration = $this->config('openid_connect.settings.windows_aad');
@@ -89,14 +134,34 @@ class WindowsAadSSOController extends ControllerBase {
   }
 
   /**
-   * Logs the current user out. Overrides UserController::logout().
+   * Handles user logout with Azure AD Single Sign-Out integration.
    *
-   * If Single Sign out has been enabled in OpenID Connect Windows AAD config
-   * then redirect the user when they try to log out of the app to the Windows
-   * single sign out endpoint. They will be logged out of their other SSO apps.
+   * This method extends the standard Drupal user logout functionality to
+   * integrate with Azure Active Directory's Single Sign-Out (SSO) feature.
+   * When enabled, users are redirected to Azure AD's logout endpoint to
+   * sign out of all connected Microsoft services.
+   *
+   * The logout process performs the following operations:
+   * 1. Checks if Azure AD SSO and Single Sign-Out are enabled
+   * 2. Verifies user has a connected Azure AD account
+   * 3. Logs the user out of Drupal using standard logout procedures
+   * 4. Redirects to Azure AD logout endpoint if SSO is configured
+   * 5. Falls back to standard Drupal logout if SSO is not configured
+   *
+   * Azure AD logout features:
+   * - Signs user out of all Microsoft Office 365 services
+   * - Invalidates Azure AD session tokens
+   * - Redirects back to the Drupal site after logout
+   * - Prevents page caching during logout process
    *
    * @return \Symfony\Component\HttpFoundation\RedirectResponse
-   *   A redirection to either the home page or to Azure AD Single Sign out.
+   *   A redirect response to either:
+   *   - Azure AD logout endpoint with post_logout_redirect_uri parameter
+   *     (when Single Sign-Out is enabled and user has connected account)
+   *   - Drupal front page (when Single Sign-Out is not configured)
+   *
+   * @see https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-protocols-oidc#single-sign-out
+   * @see user_logout()
    */
   public function logout() {
     $connected = FALSE;

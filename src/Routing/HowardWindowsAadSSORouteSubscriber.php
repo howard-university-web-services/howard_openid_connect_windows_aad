@@ -1,5 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
+/**
+ * @file
+ * Contains \Drupal\howard_openid_connect_windows_aad\Routing\HowardWindowsAadSSORouteSubscriber.
+ */
+
 namespace Drupal\howard_openid_connect_windows_aad\Routing;
 
 use Drupal\Core\Routing\RouteSubscriberBase;
@@ -7,12 +14,58 @@ use Symfony\Component\Routing\RouteCollection;
 use Drupal\Core\Utility\Error;
 
 /**
- * Listens to the dynamic route events.
+ * Route subscriber for Azure AD Single Sign-Out integration.
+ *
+ * This route subscriber dynamically modifies Drupal's routing system to
+ * integrate Azure Active Directory Single Sign-Out functionality with
+ * the standard user logout process.
+ *
+ * Key functionality:
+ * - Listens to dynamic route events during route collection
+ * - Conditionally overrides the default user.logout route controller
+ * - Enables Azure AD SSO logout when properly configured
+ * - Provides comprehensive error handling and logging
+ * - Maintains backward compatibility with standard Drupal logout
+ *
+ * The subscriber only modifies routing when:
+ * 1. Azure AD OpenID Connect client is enabled
+ * 2. Single Sign-Out feature is enabled in configuration
+ * 3. Configuration is valid and accessible
+ *
+ * @see https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-protocols-oidc#single-sign-out
+ * @see \Drupal\Core\Routing\RouteSubscriberBase
  */
 class HowardWindowsAadSSORouteSubscriber extends RouteSubscriberBase {
 
   /**
-   * {@inheritdoc}
+   * Modifies the user logout route to support Azure AD Single Sign-Out.
+   *
+   * This method conditionally overrides the default user.logout route
+   * controller to enable Azure Active Directory Single Sign-Out integration.
+   * The override only occurs when Azure AD SSO is properly configured.
+   *
+   * The method performs the following operations:
+   * 1. Retrieves the existing user.logout route from the collection
+   * 2. Attempts to load Azure AD OpenID Connect configuration
+   * 3. Validates that the client is enabled and SSO is configured
+   * 4. Overrides the route controller if conditions are met
+   * 5. Provides comprehensive error handling for configuration issues
+   *
+   * Configuration validation includes:
+   * - Azure AD OpenID Connect client is enabled
+   * - Single Sign-Out feature is enabled in settings
+   * - Configuration is accessible and valid
+   *
+   * Error handling:
+   * - Catches configuration loading exceptions
+   * - Logs detailed error information for troubleshooting
+   * - Gracefully falls back to standard logout on failures
+   * - Continues operation without breaking the logout functionality
+   *
+   * @param \Symfony\Component\Routing\RouteCollection $collection
+   *   The route collection containing all application routes.
+   *
+   * @see \Drupal\howard_openid_connect_windows_aad\Controller\WindowsAadSSOController::logout()
    */
   protected function alterRoutes(RouteCollection $collection) {
     if ($route = $collection->get('user.logout')) {
