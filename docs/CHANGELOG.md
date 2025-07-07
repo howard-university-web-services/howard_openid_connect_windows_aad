@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Enhanced code documentation and comments throughout all PHP files
 - Professional README.md with badges, features, and quick start guide
 - Complete composer.json with dependencies, scripts, and metadata
+- Session manager dependency injection for modern logout handling
 
 ### Changed
 - Enhanced code documentation and comments in all PHP source files
@@ -26,6 +27,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Converted README.txt to comprehensive README.md
 - Updated module metadata in info.yml file
 - Enhanced composer.json with professional structure and dependencies
+- Replaced deprecated `user_logout()` calls with modern session management
+- Improved dependency injection in WindowsAadSSOController
+
+### Fixed
+- PHPCS code style violations and warnings
+- Deprecated function calls replaced with modern Drupal APIs
+- Line length issues and formatting problems
+- Translatable string formatting
+- File documentation headers and structure
+- Whitespace and trailing space issues
+
+### Security
+- Modernized authentication handling with session manager
+- Improved logout security with proper session regeneration
+- Enhanced validation and security checks
 
 ### Enhanced
 - Plugin architecture documentation with comprehensive API coverage

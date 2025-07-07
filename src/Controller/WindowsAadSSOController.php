@@ -21,6 +21,7 @@ namespace Drupal\howard_openid_connect_windows_aad\Controller;
 
 use Drupal\Core\Controller\ControllerBase;
 use Drupal\Core\Session\AccountProxyInterface;
+use Drupal\Core\Session\SessionManagerInterface;
 use Drupal\Core\PageCache\ResponsePolicy\KillSwitch;
 use Psr\Log\LoggerInterface;
 use Drupal\Component\Utility\UrlHelper;
@@ -81,6 +82,13 @@ class WindowsAadSSOController extends ControllerBase {
   protected $pageCacheKillSwitch;
 
   /**
+   * The session manager service.
+   *
+   * @var \Drupal\Core\Session\SessionManagerInterface
+   */
+  protected $sessionManager;
+
+  /**
    * Constructs a WindowsAadSSOController object.
    *
    * @param \Psr\Log\LoggerInterface $logger
@@ -91,12 +99,15 @@ class WindowsAadSSOController extends ControllerBase {
    *   The current user service.
    * @param \Drupal\Core\PageCache\ResponsePolicy\KillSwitch $page_cache_kill_switch
    *   The page cache kill switch service.
+   * @param \Drupal\Core\Session\SessionManagerInterface $session_manager
+   *   The session manager service.
    */
-  public function __construct(LoggerInterface $logger, OpenIDConnectAuthmap $authmap, AccountProxyInterface $current_user, KillSwitch $page_cache_kill_switch) {
+  public function __construct(LoggerInterface $logger, OpenIDConnectAuthmap $authmap, AccountProxyInterface $current_user, KillSwitch $page_cache_kill_switch, SessionManagerInterface $session_manager) {
     $this->logger = $logger;
     $this->authmap = $authmap;
     $this->currentUser = $current_user;
     $this->pageCacheKillSwitch = $page_cache_kill_switch;
+    $this->sessionManager = $session_manager;
   }
 
   /**
@@ -107,7 +118,8 @@ class WindowsAadSSOController extends ControllerBase {
       $container->get('logger.factory')->get('howard_openid_connect_windows_aad'),
       $container->get('openid_connect.authmap'),
       $container->get('current_user'),
-      $container->get('page_cache_kill_switch')
+      $container->get('page_cache_kill_switch'),
+      $container->get('session_manager')
     );
   }
 
@@ -116,7 +128,8 @@ class WindowsAadSSOController extends ControllerBase {
    *
    * This method is called by Azure AD when a user logs out of their SSO
    * session from another application (such as Office 365 or other Microsoft
-   * services). It implements the OpenID Connect RP-Initiated Logout specification.
+   * services). It implements the OpenID Connect RP-Initiated Logout
+   * specification.
    *
    * The method performs the following security and validation checks:
    * 1. Verifies that the Windows AAD client is enabled
@@ -154,7 +167,12 @@ class WindowsAadSSOController extends ControllerBase {
       // Only log the user out if they are logged in and have a connected
       // account. Return a 200 OK in any case since all is good.
       if ($logged_in && $connected) {
-        user_logout();
+        // Modern logout using session manager instead of deprecated user_logout().
+        $this->sessionManager->regenerate();
+        $anonymous_user = $this->entityTypeManager()
+          ->getStorage('user')
+          ->load(0);
+        $this->currentUser->setAccount($anonymous_user);
       }
       return new Response('', Response::HTTP_OK);
     }
@@ -195,7 +213,6 @@ class WindowsAadSSOController extends ControllerBase {
    *   - Drupal front page (when Single Sign-Out is not configured)
    *
    * @see https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-protocols-oidc#single-sign-out
-   * @see user_logout()
    */
   public function logout() {
     $connected = FALSE;
@@ -212,7 +229,11 @@ class WindowsAadSSOController extends ControllerBase {
       $connected = ($connected_accounts && isset($connected_accounts['windows_aad']));
     }
 
-    user_logout();
+    // Modern logout using session manager instead of deprecated user_logout().
+    $this->sessionManager->regenerate();
+    $anonymous_user = $this->entityTypeManager()->getStorage('user')->load(0);
+    $this->currentUser->setAccount($anonymous_user);
+
     if ($connected) {
       // Redirect back to the home page once signed out.
       $redirect_uri = Url::fromRoute('<front>', [], ['absolute' => TRUE])->toString(TRUE)->getGeneratedUrl();

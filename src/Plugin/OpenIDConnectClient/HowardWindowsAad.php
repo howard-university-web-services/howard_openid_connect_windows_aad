@@ -89,7 +89,7 @@ class HowardWindowsAad extends OpenIDConnectClientBase {
       '#default_value' => $this->configuration['token_endpoint_wa'],
     ];
     $form['map_ad_groups_to_roles'] = [
-      '#title' => $this->t('Map user\'s AD groups to Drupal roles'),
+      '#title' => $this->t("Map user's AD groups to Drupal roles"),
       '#type' => 'checkbox',
       '#default_value' => !empty($this->configuration['map_ad_groups_to_roles']) ? $this->configuration['map_ad_groups_to_roles'] : '',
       '#description' => $this->t('Enable this to configure Drupal user role assignment based on AD group membership.'),
@@ -255,7 +255,8 @@ class HowardWindowsAad extends OpenIDConnectClientBase {
   public function retrieveUserInfo($access_token) {
 
     // Get user info from microsoft graph api.
-    $userinfo = $this->buildUserinfo($access_token, 'https://graph.microsoft.com/v1.0/me?$select=id,displayName,givenName,surname,jobTitle,mail,userPrincipalName,officeLocation,onPremisesExtensionAttributes', 'userPrincipalName', 'displayName');
+    $endpoint = 'https://graph.microsoft.com/v1.0/me?$select=id,displayName,givenName,surname,jobTitle,mail,userPrincipalName,officeLocation,onPremisesExtensionAttributes';
+    $userinfo = $this->buildUserinfo($access_token, $endpoint, 'userPrincipalName', 'displayName');
 
     // TEMP LOG
     // \Drupal::logger('howard_aad_userinfo_retrieved_from_api')->notice('<pre><code>' . print_r($userinfo, TRUE) . '</code></pre>');.

@@ -43,16 +43,9 @@ use Drupal\user\Entity\User;
 /**
  * Implements hook_form_openid_connect_admin_settings_alter().
  *
- * Adds route rebuilding functionality to the OpenID Connect admin settings form.
- * This ensures that route changes (particularly for Single Sign-Out) are properly
- * applied when the configuration is saved.
- *
- * @param array $form
- *   The OpenID Connect admin settings form array.
- * @param \Drupal\Core\Form\FormState $form_state
- *   The current state of the form.
- * @param string $form_id
- *   The form ID.
+ * Adds route rebuilding functionality to the OpenID Connect admin settings
+ * form. This ensures that route changes (particularly for Single Sign-Out)
+ * are properly applied when the configuration is saved.
  */
 function howard_openid_connect_windows_aad_form_openid_connect_admin_settings_alter(array &$form, FormState $form_state, $form_id) {
   array_unshift($form['#submit'], '_howard_openid_connect_windows_aad_form_submit_refresh_routes');
@@ -85,8 +78,10 @@ function _howard_openid_connect_windows_aad_form_submit_refresh_routes(&$form, F
   // Rebuild routes since we may override the user.logout route for single
   // sign off.
   if ((!$assume_disabled && ($aad_enabled !== $aad_checked || $sso_enabled !== $sso_checked)) || ($assume_disabled && (($aad_enabled !== $aad_checked) || $aad_checked))) {
-    \Drupal::logger('howard_openid_connect_windows_aad')->debug('rebuild routes');
-    \Drupal::service('router.builder')->setRebuildNeeded();
+    $logger = \Drupal::logger('howard_openid_connect_windows_aad');
+    $router_builder = \Drupal::service('router.builder');
+    $logger->debug('rebuild routes');
+    $router_builder->setRebuildNeeded();
   }
 }
 
@@ -187,7 +182,7 @@ function howard_openid_connect_windows_aad_openid_connect_userinfo_save(UserInte
     $role_group_map = [];
 
     // The mappings is a text area with each line containing the following
-    // format: <role id or label>|<AD Group ID or Label>;<AD Group ID or Label>; ...
+    // format: <role id or label>|<AD Group ID or Label>;<AD Group ID or Label>
     // Thus we need to split the text out into its components and determine
     // if there are any roles that should map to this user.
     $list = explode("\n", $settings['group_mapping']['mappings']);
@@ -227,7 +222,8 @@ function howard_openid_connect_windows_aad_openid_connect_userinfo_save(UserInte
           // Assign Mapped role.
           $mapped_roles[$key] = $key;
 
-          // Automatically unblock ther account, since we know they are the correct person/role desired.
+          // Automatically unblock the account, since we know they are the
+          // correct person/role desired.
           if ($account->isBlocked()) {
             $account->activate();
             \Drupal::messenger()->addMessage('Your account was automatically unblocked, or activated because you belong to the administrators group in Howard Universities Azure SSO system. You are now an active administrator on this site, no further action needed.');
@@ -314,7 +310,8 @@ function howard_openid_connect_windows_aad_form_alter(&$form, &$form_state, $for
     $form['user_picture']['#access'] = FALSE;
 
     if ($user->hasRole('administrator')) {
-      // Disable local password field being required for admins. This allows admins to skip, as SSO is desired.
+      // Disable local password field being required for admins. This allows
+      // admins to skip, as SSO is desired.
       $form['account']['pass']['#required'] = 0;
       $form['account']['pass']['#description'] = t('<strong>IMPORTANT</strong>: If you are setting local passwords for users, please utilize a strong generated password, such as one form <a href="https://www.strongpasswordgenerator.org/" target="_blank">strongpasswordgenerator.org</a>.');
     }
