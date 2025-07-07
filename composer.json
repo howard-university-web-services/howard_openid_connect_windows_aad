@@ -72,7 +72,7 @@
   },
   "extra": {
     "drupal": {
-      "version": "1.0.0",
+      "version": "11.0.2",
       "datestamp": "1704067200",
       "security-coverage": {
         "status": "covered",
@@ -80,7 +80,7 @@
       }
     },
     "branch-alias": {
-      "dev-main": "1.x-dev"
+      "dev-main": "11.x-dev"
     }
   },
   "scripts": {
