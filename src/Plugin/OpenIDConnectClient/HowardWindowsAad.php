@@ -48,7 +48,7 @@ class HowardWindowsAad extends OpenIDConnectClientBase {
    * - Single Sign-Out (SSO) enablement
    * - Custom authorization and token endpoints
    * - Active Directory group to Drupal role mapping
-   * - Manual group-role mapping configuration
+   * - Manual group-role mapping configuration.
    *
    * @param array $form
    *   The form array containing form elements.

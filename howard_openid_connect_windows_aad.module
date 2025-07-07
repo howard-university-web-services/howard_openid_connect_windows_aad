@@ -1,7 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
 /**
  * @file
  * Howard OpenID Connect Windows Azure Active Directory module.
@@ -10,22 +8,9 @@ declare(strict_types=1);
  * Azure Active Directory using the OpenID Connect protocol. It includes
  * Howard University specific customizations for authentication, user
  * management, and role mapping.
- *
- * Key features:
- * - Single Sign-On (SSO) with Azure Active Directory
- * - Automatic user creation and profile synchronization
- * - Group-based role mapping from Azure AD to Drupal roles
- * - Single Sign-Out (SSO) support with route override
- * - Comprehensive error handling and logging
- * - Howard University specific authentication flow customizations
- *
- * This module extends the base OpenID Connect module with Azure AD specific
- * functionality and integrates with Howard University's existing authentication
- * infrastructure and organizational structure.
- *
- * @see https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-protocols-oidc
- * @see https://www.drupal.org/project/openid_connect
  */
+
+declare(strict_types=1);
 
 use Drupal\user\Entity\Role;
 use Drupal\user\UserInterface;
@@ -47,7 +32,7 @@ use Drupal\user\Entity\User;
  * @param string $form_id
  *   The form ID.
  */
-function howard_openid_connect_windows_aad_form_openid_connect_admin_settings_alter(&$form, FormState $form_state, $form_id) {
+function howard_openid_connect_windows_aad_form_openid_connect_admin_settings_alter(array &$form, FormState $form_state, $form_id) {
   array_unshift($form['#submit'], '_howard_openid_connect_windows_aad_form_submit_refresh_routes');
 }
 
@@ -113,7 +98,7 @@ function _howard_openid_connect_windows_aad_form_submit_refresh_routes(&$form, F
  *   The OpenID Connect context containing:
  *   - 'plugin_id': The OpenID Connect client plugin ID
  *   - 'user_data': User profile information from Azure AD
- *   - 'userinfo': Additional user information including groups
+ *   - 'userinfo': Additional user information including groups.
  *
  * @see https://docs.microsoft.com/en-us/graph/api/user-list-memberof
  */

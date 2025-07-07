@@ -69,7 +69,7 @@ class WindowsAadSSOController extends ControllerBase {
    *   The response object.
    */
   public function authenticate(Request $request) {
-    // Implementation
+    // Implementation.
   }
 
 }
@@ -99,18 +99,23 @@ catch (SpecificException $e) {
 ### Coding Standards Compliance
 - Follow [Drupal Coding Standards](https://www.drupal.org/docs/develop/standards)
 - Use PHP_CodeSniffer with Drupal standards
-- Run `phpcs --standard=Drupal,DrupalPractice`
+- Run `phpcs--standard = Drupal, DrupalPractice`
 - Fix all coding standards violations
 
 ### File Organization
 ```
-src/
-├── Controller/           # Controllers for handling HTTP requests
-├── Plugin/              # Plugin implementations
-│   └── OpenIDConnectClient/
-├── Routing/             # Route subscribers and providers
-├── Service/             # Custom services
-└── EventSubscriber/     # Event subscribers
+src /
+// Controllers for handling HTTP requests.
+├── Controller /
+// Plugin implementations.
+├── Plugin /
+│   └── OpenIDConnectClient /
+// Route subscribers and providers.
+├── Routing /
+// Custom services.
+├── Service /
+// Event subscribers.
+└── EventSubscriber /
 ```
 
 ### Naming Conventions
@@ -118,7 +123,7 @@ src/
 - Methods: `camelCase` (e.g., `authenticateUser`)
 - Variables: `snake_case` (e.g., `$user_account`)
 - Constants: `UPPER_SNAKE_CASE` (e.g., `DEFAULT_TIMEOUT`)
-- Files: `kebab-case.php` (e.g., `windows-aad-sso-controller.php`)
+- Files: `kebab - case . php` (e.g., `windows - aad - sso - controller . php`)
 
 ### Plugin Development
 ```php
@@ -131,7 +136,7 @@ src/
  * )
  */
 class HowardWindowsAad extends OpenIDConnectClientBase {
-  // Plugin implementation
+  // Plugin implementation.
 }
 ```
 
@@ -143,6 +148,7 @@ class HowardWindowsAad extends OpenIDConnectClientBase {
 
 ### Service Dependencies
 ```php
+
 /**
  * Constructs a new WindowsAadSSOController.
  *
@@ -158,6 +164,7 @@ public function __construct(
   $this->configFactory = $config_factory;
   $this->logger = $logger;
 }
+
 ```
 
 ## Security Standards
@@ -170,12 +177,12 @@ public function __construct(
 
 ### Authentication Security
 ```php
-// Validate tokens securely
+// Validate tokens securely.
 if (!$this->tokenValidator->validateToken($token)) {
   throw new AccessDeniedException('Invalid authentication token');
 }
 
-// Secure session handling
+// Secure session handling.
 $session = $request->getSession();
 $session->migrate(TRUE);
 ```
@@ -188,6 +195,7 @@ $session->migrate(TRUE);
 
 ### Access Control
 ```php
+
 /**
  * Checks access for SSO authentication.
  *
@@ -198,13 +206,14 @@ public function access() {
   return AccessResult::allowedIf($this->isValidSSORequest())
     ->addCacheContexts(['url.query_args']);
 }
+
 ```
 
 ## Documentation Standards
 
 ### File Headers
 ```php
-<?php
+< ? php
 
 declare(strict_types=1);
 
@@ -232,6 +241,7 @@ class WindowsAadSSOController extends ControllerBase {
 
 ### Method Documentation
 ```php
+
 /**
  * Authenticates user via Azure AD SSO.
  *
@@ -255,15 +265,16 @@ public function authenticate(Request $request) {
 
 ### Inline Comments
 ```php
-// Validate the state parameter to prevent CSRF attacks
+// Validate the state parameter to prevent CSRF attacks.
 if (!$this->validateState($request->get('state'))) {
   throw new AccessException('Invalid state parameter');
+
 }
 
-// Exchange authorization code for access token
+// Exchange authorization code for access token.
 $token_response = $this->exchangeCodeForToken($request->get('code'));
 
-// TODO: Implement token refresh mechanism for long-lived sessions
+// @todo Implement token refresh mechanism for long-lived sessions
 // @see https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-oauth2-auth-code-flow#refresh-the-access-token
 ```
 
@@ -285,8 +296,9 @@ class WindowsAadSSOControllerTest extends UnitTestCase {
    * @covers ::authenticate
    */
   public function testAuthenticateWithValidParameters() {
-    // Test implementation
+    // Test implementation.
   }
+
 }
 ```
 
@@ -304,13 +316,14 @@ class WindowsAadSSOControllerTest extends UnitTestCase {
  * @group howard_openid_connect_windows_aad_integration
  */
 class WindowsAadIntegrationTest extends BrowserTestBase {
-  
+
   /**
    * Tests the complete SSO authentication flow.
    */
   public function testSSOAuthenticationFlow() {
-    // Integration test implementation
+    // Integration test implementation.
   }
+
 }
 ```
 
@@ -344,34 +357,33 @@ class WindowsAadIntegrationTest extends BrowserTestBase {
 
 ### Code Quality Tools
 ```bash
-# PHP_CodeSniffer for coding standards
-./vendor/bin/phpcs --standard=Drupal,DrupalPractice src/
+// PHP_CodeSniffer for coding standards.
+ . / vendor / bin / phpcs--standard = Drupal, DrupalPractice src /
 
-# PHP Code Beautifier and Fixer
-./vendor/bin/phpcbf --standard=Drupal src/
+// PHP Code Beautifier and Fixer.
+ . / vendor / bin / phpcbf--standard = Drupal src /
 
-# PHPStan for static analysis
-./vendor/bin/phpstan analyse src/
+// PHPStan for static analysis.
+ . / vendor / bin / phpstan analyse src /
 
-# PHPMD for mess detection
-./vendor/bin/phpmd src/ text cleancode,codesize,controversial,design,naming,unusedcode
+// PHPMD for mess detection.
+ . / vendor / bin / phpmd src / text cleancode, codesize, controversial, design, naming, unusedcode
 ```
 
 ### Pre-commit Hooks
 ```bash
-#!/bin/sh
-# Pre-commit hook to run coding standards checks
-
-# Run PHPCS
-./vendor/bin/phpcs --standard=Drupal,DrupalPractice src/
-if [ $? -ne 0 ]; then
+// !/bin/sh
+// Pre-commit hook to run coding standards checks
+// Run PHPCS.
+ . / vendor / bin / phpcs--standard = Drupal, DrupalPractice src /
+if [$ ? -ne 0]; then
     echo "Coding standards violations found. Please fix before committing."
     exit 1
 fi
 
-# Run PHPStan
-./vendor/bin/phpstan analyse src/
-if [ $? -ne 0 ]; then
+// Run PHPStan.
+ . / vendor / bin / phpstan analyse src /
+if [$ ? -ne 0]; then
     echo "Static analysis errors found. Please fix before committing."
     exit 1
 fi
