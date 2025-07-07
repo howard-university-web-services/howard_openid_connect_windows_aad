@@ -8,6 +8,28 @@
  * Azure Active Directory using the OpenID Connect protocol. It includes
  * Howard University specific customizations for authentication, user
  * management, and role mapping.
+ *
+ * Key features:
+ * - Single Sign-On (SSO) with Azure Active Directory
+ * - Automatic user creation and profile synchronization
+ * - Group-based role mapping from Azure AD to Drupal roles
+ * - Single Sign-Out (SSO) support with route override
+ * - Comprehensive error handling and logging
+ * - Howard University specific authentication flow customizations
+ *
+ * This module extends the base OpenID Connect module with Azure AD specific
+ * functionality and integrates with Howard University's existing authentication
+ * infrastructure and organizational structure.
+ *
+ * @package Drupal\howard_openid_connect_windows_aad
+ * @author Howard University Web Team
+ * @copyright 2024 Howard University
+ * @license GPL-2.0-or-later
+ * @version 11.0.2
+ * @since 1.0.0
+ *
+ * @see https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-protocols-oidc
+ * @see https://www.drupal.org/project/openid_connect
  */
 
 declare(strict_types=1);

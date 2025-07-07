@@ -4,7 +4,17 @@ declare(strict_types=1);
 
 /**
  * @file
- * Contains \Drupal\howard_openid_connect_windows_aad\Routing\HowardWindowsAadSSORouteSubscriber.
+ * Contains the HowardWindowsAadSSORouteSubscriber for dynamic route management.
+ *
+ * This file provides the route subscriber responsible for dynamically modifying
+ * Drupal's routing system to integrate Azure Active Directory Single Sign-Out
+ * functionality with Howard University's authentication requirements.
+ *
+ * @package Drupal\howard_openid_connect_windows_aad\Routing
+ * @author Howard University Web Team
+ * @copyright 2024 Howard University
+ * @license GPL-2.0-or-later
+ * @since 1.0.0
  */
 
 namespace Drupal\howard_openid_connect_windows_aad\Routing;

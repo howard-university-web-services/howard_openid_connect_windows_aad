@@ -4,7 +4,17 @@ declare(strict_types=1);
 
 /**
  * @file
- * Contains \Drupal\howard_openid_connect_windows_aad\Plugin\OpenIDConnectClient\HowardWindowsAad.
+ * Contains the HowardWindowsAad OpenID Connect client plugin.
+ *
+ * This file provides the OpenID Connect client plugin for integrating with
+ * Microsoft Azure Active Directory, specifically customized for Howard
+ * University's authentication and user management requirements.
+ *
+ * @package Drupal\howard_openid_connect_windows_aad\Plugin\OpenIDConnectClient
+ * @author Howard University Web Team
+ * @copyright 2024 Howard University
+ * @license GPL-2.0-or-later
+ * @since 1.0.0
  */
 
 namespace Drupal\howard_openid_connect_windows_aad\Plugin\OpenIDConnectClient;

@@ -4,12 +4,24 @@ declare(strict_types=1);
 
 /**
  * @file
- * Contains \Drupal\howard_openid_connect_windows_aad\Controller\WindowsAadSSOController.
+ * Contains the WindowsAadSSOController class for Azure AD Single Sign-On operations.
+ *
+ * This file provides the controller responsible for handling authentication
+ * flows for Howard University's integration with Microsoft Azure Active
+ * Directory through OpenID Connect protocol.
+ *
+ * @package Drupal\howard_openid_connect_windows_aad\Controller
+ * @author Howard University Web Team
+ * @copyright 2024 Howard University
+ * @license GPL-2.0-or-later
+ * @since 1.0.0
  */
 
 namespace Drupal\howard_openid_connect_windows_aad\Controller;
 
 use Drupal\Core\Controller\ControllerBase;
+use Drupal\Core\Session\AccountProxyInterface;
+use Drupal\Core\PageCache\ResponsePolicy\KillSwitch;
 use Psr\Log\LoggerInterface;
 use Drupal\Component\Utility\UrlHelper;
 use Drupal\Core\Url;
@@ -55,16 +67,36 @@ class WindowsAadSSOController extends ControllerBase {
   protected $authmap;
 
   /**
+   * The current user service.
+   *
+   * @var \Drupal\Core\Session\AccountProxyInterface
+   */
+  protected $currentUser;
+
+  /**
+   * The page cache kill switch service.
+   *
+   * @var \Drupal\Core\PageCache\ResponsePolicy\KillSwitch
+   */
+  protected $pageCacheKillSwitch;
+
+  /**
    * Constructs a WindowsAadSSOController object.
    *
    * @param \Psr\Log\LoggerInterface $logger
    *   The logger service for recording authentication events and errors.
    * @param \Drupal\openid_connect\OpenIDConnectAuthmap $authmap
    *   The OpenID Connect authentication mapping service.
+   * @param \Drupal\Core\Session\AccountProxyInterface $current_user
+   *   The current user service.
+   * @param \Drupal\Core\PageCache\ResponsePolicy\KillSwitch $page_cache_kill_switch
+   *   The page cache kill switch service.
    */
-  public function __construct(LoggerInterface $logger, OpenIDConnectAuthmap $authmap) {
+  public function __construct(LoggerInterface $logger, OpenIDConnectAuthmap $authmap, AccountProxyInterface $current_user, KillSwitch $page_cache_kill_switch) {
     $this->logger = $logger;
     $this->authmap = $authmap;
+    $this->currentUser = $current_user;
+    $this->pageCacheKillSwitch = $page_cache_kill_switch;
   }
 
   /**
@@ -73,7 +105,9 @@ class WindowsAadSSOController extends ControllerBase {
   public static function create(ContainerInterface $container) {
     return new static(
       $container->get('logger.factory')->get('howard_openid_connect_windows_aad'),
-      $container->get('openid_connect.authmap')
+      $container->get('openid_connect.authmap'),
+      $container->get('current_user'),
+      $container->get('page_cache_kill_switch')
     );
   }
 
@@ -113,7 +147,7 @@ class WindowsAadSSOController extends ControllerBase {
     // Check that the windows_aad client is enabled and so is SSOut.
     if ($enabled && isset($settings['enable_single_sign_out']) && $settings['enable_single_sign_out']) {
       // Ensure the user has a connected account.
-      $user = \Drupal::currentUser();
+      $user = $this->currentUser;
       $connected_accounts = $this->authmap->getConnectedAccounts($user);
       $connected = ($connected_accounts && isset($connected_accounts['windows_aad']));
       $logged_in = $user->isAuthenticated();
@@ -173,7 +207,7 @@ class WindowsAadSSOController extends ControllerBase {
     // Check for a connected account before we log the Drupal user out.
     if ($enabled) {
       // Ensure the user has a connected account.
-      $user = \Drupal::currentUser();
+      $user = $this->currentUser;
       $connected_accounts = $this->authmap->getConnectedAccounts($user);
       $connected = ($connected_accounts && isset($connected_accounts['windows_aad']));
     }
@@ -191,7 +225,7 @@ class WindowsAadSSOController extends ControllerBase {
       // We can't cache the response, since we need the user to get logged out
       // prior to being redirected. The kill switch will prevent the page
       // getting cached when page cache is active.
-      \Drupal::service('page_cache_kill_switch')->trigger();
+      $this->pageCacheKillSwitch->trigger();
       return $response;
     }
     // No SSOut so do the usual thing and redirect to the front page.

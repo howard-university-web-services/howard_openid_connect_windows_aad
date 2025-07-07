@@ -2,11 +2,35 @@
 
 /**
  * @file
- * Remove Configuration of settings form.
+ */
+
+declare(strict_types=1);
+
+/**
+ * @file
+ * Installation and uninstallation hooks for Howard OpenID Connect Windows AAD module.
+ *
+ * This file contains installation procedures and cleanup functions for the
+ * Howard OpenID Connect Windows Azure Active Directory module. It handles
+ * configuration management during module lifecycle operations.
+ *
+ * @package Drupal\howard_openid_connect_windows_aad
+ * @author Howard University Web Team
+ * @copyright 2024 Howard University
+ * @license GPL-2.0-or-later
+ * @version 11.0.2
+ * @since 1.0.0
  */
 
 /**
  * Implements hook_uninstall().
+ *
+ * Performs cleanup operations when the module is uninstalled.
+ *
+ * This function removes all module-specific configuration to ensure
+ * a clean uninstallation and prevent configuration orphaning.
+ *
+ * @since 1.0.0
  */
 function howard_openid_connect_windows_aad_uninstall() {
   // Remove configuration.
