@@ -71,14 +71,6 @@
     }
   },
   "extra": {
-    "drupal": {
-      "version": "11.0.2",
-      "datestamp": "1704067200",
-      "security-coverage": {
-        "status": "covered",
-        "message": "Covered by Howard University IT Security Team"
-      }
-    },
     "branch-alias": {
       "dev-main": "11.x-dev"
     }

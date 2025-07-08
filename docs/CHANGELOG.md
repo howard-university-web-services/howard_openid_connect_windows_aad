@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [11.0.3] - 2025-07-08
+
+### Changed
+- Updated module configuration for Packagist distribution instead of drupal.org
+- Removed drupal.org specific metadata from info.yml file (project and datestamp fields)
+- Removed drupal-specific version metadata from composer.json extra section
+- Added explicit version field to composer.json for proper Packagist versioning
+- Module is now properly configured as a custom module for Packagist distribution
+
 ## [11.0.2] - 2025-07-07
 
 ### Added
