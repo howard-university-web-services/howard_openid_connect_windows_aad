@@ -34,7 +34,7 @@ function howard_openid_connect_windows_aad_uninstall() {
 }
 
 /**
- * Updates to client config.
+ * Updates to client configuration, to account for update to 3x version of openid_connect module.
  */
 function howard_openid_connect_windows_aad_update_8001() {
   \Drupal::service('config.installer')->installDefaultConfig('module', 'howard_openid_connect_windows_aad');

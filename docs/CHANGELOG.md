@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [11.0.4] - 2025-07-24
+
+### Changed
+
+- Updated dependency on openid_connect to require >=3.0.0-alpha in composer.json and info.yml
+- Bumped version to 11.0.4 for release
+- 6d44939 Updates to function with openid_connect:^3.0@alpha - requires site_shared_settings to be updated before release
+
 ## [11.0.3] - 2025-07-08
 
 ### Changed

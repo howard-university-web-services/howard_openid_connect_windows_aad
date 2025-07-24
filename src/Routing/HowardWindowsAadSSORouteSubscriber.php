@@ -11,7 +11,6 @@ declare(strict_types=1);
  * functionality with Howard University's authentication requirements.
  *
  * @package Drupal\howard_openid_connect_windows_aad\Routing
- * @author Howard University Web Team
  * @copyright 2024 Howard University
  * @license GPL-2.0-or-later
  * @since 1.0.0
@@ -80,6 +79,7 @@ class HowardWindowsAadSSORouteSubscriber extends RouteSubscriberBase {
   protected function alterRoutes(RouteCollection $collection) {
     if ($route = $collection->get('user.logout')) {
       try {
+        // @todo Refactor to use dependency injection for configuration and logging services instead of \Drupal:: static calls.
         $configuration = \Drupal::config('openid_connect.settings.windows_aad');
         $settings = $configuration->get('settings');
         $enabled = $configuration->get('enabled');

@@ -11,7 +11,6 @@ declare(strict_types=1);
  * University's authentication and user management requirements.
  *
  * @package Drupal\howard_openid_connect_windows_aad\Plugin\OpenIDConnectClient
- * @author Howard University Web Team
  * @copyright 2024 Howard University
  * @license GPL-2.0-or-later
  * @since 1.0.0
@@ -164,8 +163,7 @@ class HowardWindowsAad extends OpenIDConnectClientBase {
    *
    * @see https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-oauth2-auth-code-flow#request-an-access-token
    */
-  public function retrieveTokens(string $authorization_code): ?array
-  {
+  public function retrieveTokens(string $authorization_code): ?array {
     // Exchange `code` for access token and ID token.
     $language_none = \Drupal::languageManager()
       ->getLanguage(LanguageInterface::LANGCODE_NOT_APPLICABLE);
@@ -253,8 +251,7 @@ class HowardWindowsAad extends OpenIDConnectClientBase {
    * @see https://docs.microsoft.com/en-us/graph/api/user-get
    * @see https://docs.microsoft.com/en-us/graph/api/user-list-memberof
    */
-  public function retrieveUserInfo(string $access_token): ?array
-  {
+  public function retrieveUserInfo(string $access_token): ?array {
 
     // Get user info from microsoft graph api.
     $endpoint = 'https://graph.microsoft.com/v1.0/me?$select=id,displayName,givenName,surname,jobTitle,mail,userPrincipalName,officeLocation,onPremisesExtensionAttributes';

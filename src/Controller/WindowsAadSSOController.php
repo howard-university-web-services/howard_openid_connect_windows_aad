@@ -11,7 +11,6 @@ declare(strict_types=1);
  * Directory through OpenID Connect protocol.
  *
  * @package Drupal\howard_openid_connect_windows_aad\Controller
- * @author Howard University Web Team
  * @copyright 2024 Howard University
  * @license GPL-2.0-or-later
  * @since 1.0.0

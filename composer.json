@@ -18,15 +18,9 @@
   ],
   "homepage": "https://github.com/howard-university-web-services/howard_openid_connect_windows_aad",
   "license": "GPL-2.0-or-later",
-  "minimum-stability": "stable",
+  "minimum-stability": "alpha",
   "prefer-stable": true,
   "authors": [
-    {
-      "name": "Dan Rogers",
-      "email": "dan.rogers@howard.edu",
-      "homepage": "https://www.drupal.org/u/dan_rogers",
-      "role": "Maintainer"
-    },
     {
       "name": "Howard University IT Services",
       "email": "it-support@howard.edu",
@@ -41,15 +35,14 @@
     "email": "it-support@howard.edu"
   },
   "require": {
-    "php": ">=8.1",
-    "drupal/core": "^9.0 || ^10.0 || ^11.0",
-    "drupal/openid_connect": "^1.4 || ^2.0 || ^3.0"
+    "php": ">=8.1"
   },
   "require-dev": {
     "drupal/core-dev": "^9.0 || ^10.0 || ^11.0",
     "phpunit/phpunit": "^9.0",
-    "squizlabs/php_codesniffer": "^3.5",
-    "phpstan/phpstan": "^1.0",
+    "squizlabs/php_codesniffer": "^3.7",
+    "mglaman/phpstan-drupal": "^1.2",
+    "phpstan/phpstan": "^1.10",
     "phpmd/phpmd": "^2.10"
   },
   "config": {
@@ -57,7 +50,10 @@
     "allow-plugins": {
       "composer/installers": true,
       "drupal/core-composer-scaffold": true,
-      "dealerdirect/phpcodesniffer-composer-installer": true
+      "dealerdirect/phpcodesniffer-composer-installer": true,
+      "php-http/discovery": true,
+      "phpstan/extension-installer": true,
+      "tbachert/spi": true
     }
   },
   "autoload": {
