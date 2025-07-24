@@ -32,3 +32,10 @@ function howard_openid_connect_windows_aad_uninstall() {
   // Remove configuration.
   Drupal::configFactory()->getEditable('openid_connect.settings.windows_aad')->delete();
 }
+
+/**
+ * Updates to client config.
+ */
+function howard_openid_connect_windows_aad_update_8001() {
+  \Drupal::service('config.installer')->installDefaultConfig('module', 'howard_openid_connect_windows_aad');
+}

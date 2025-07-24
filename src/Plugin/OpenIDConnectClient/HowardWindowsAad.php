@@ -70,7 +70,7 @@ class HowardWindowsAad extends OpenIDConnectClientBase {
    *
    * @see \Drupal\openid_connect\Plugin\OpenIDConnectClientBase::buildConfigurationForm()
    */
-  public function buildConfigurationForm(array $form, FormStateInterface $form_state) {
+  public function buildConfigurationForm(array $form, FormStateInterface $form_state): array {
     $form = parent::buildConfigurationForm($form, $form_state);
     $form['enable_single_sign_out'] = [
       '#title' => $this->t('Enable Single Sign Out'),
@@ -81,12 +81,12 @@ class HowardWindowsAad extends OpenIDConnectClientBase {
     $form['authorization_endpoint_wa'] = [
       '#title' => $this->t('Authorization endpoint'),
       '#type' => 'textfield',
-      '#default_value' => $this->configuration['authorization_endpoint_wa'],
+      '#default_value' => $this->configuration['authorization_endpoint_wa'] ?? '',
     ];
     $form['token_endpoint_wa'] = [
       '#title' => $this->t('Token endpoint'),
       '#type' => 'textfield',
-      '#default_value' => $this->configuration['token_endpoint_wa'],
+      '#default_value' => $this->configuration['token_endpoint_wa'] ?? '',
     ];
     $form['map_ad_groups_to_roles'] = [
       '#title' => $this->t("Map user's AD groups to Drupal roles"),
@@ -107,7 +107,7 @@ class HowardWindowsAad extends OpenIDConnectClientBase {
     $form['group_mapping']['mappings'] = [
       '#title' => $this->t('Manual mappings'),
       '#type' => 'textarea',
-      '#default_value' => $this->configuration['group_mapping']['mappings'],
+      '#default_value' => $this->configuration['group_mapping']['mappings'] ?? '',
       '#description' => $this->t('Add one role|group(s) mapping per line. Role and Group should be separated by "|". Multiple groups can be mapped to a single role on the same line using ";" to separate the groups. Ideally you should use the group id since it is immutable, but the title (displayName) may also be used.'),
     ];
 
@@ -128,7 +128,7 @@ class HowardWindowsAad extends OpenIDConnectClientBase {
    *
    * @see https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-oauth2-auth-code-flow
    */
-  public function getEndpoints() {
+  public function getEndpoints(): array {
     return [
       'authorization' => $this->configuration['authorization_endpoint_wa'],
       'token' => $this->configuration['token_endpoint_wa'],
@@ -164,7 +164,8 @@ class HowardWindowsAad extends OpenIDConnectClientBase {
    *
    * @see https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-oauth2-auth-code-flow#request-an-access-token
    */
-  public function retrieveTokens($authorization_code) {
+  public function retrieveTokens(string $authorization_code): ?array
+  {
     // Exchange `code` for access token and ID token.
     $language_none = \Drupal::languageManager()
       ->getLanguage(LanguageInterface::LANGCODE_NOT_APPLICABLE);
@@ -252,7 +253,8 @@ class HowardWindowsAad extends OpenIDConnectClientBase {
    * @see https://docs.microsoft.com/en-us/graph/api/user-get
    * @see https://docs.microsoft.com/en-us/graph/api/user-list-memberof
    */
-  public function retrieveUserInfo($access_token) {
+  public function retrieveUserInfo(string $access_token): ?array
+  {
 
     // Get user info from microsoft graph api.
     $endpoint = 'https://graph.microsoft.com/v1.0/me?$select=id,displayName,givenName,surname,jobTitle,mail,userPrincipalName,officeLocation,onPremisesExtensionAttributes';

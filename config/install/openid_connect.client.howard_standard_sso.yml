@@ -1,0 +1,18 @@
+langcode: en
+status: true
+dependencies:
+  module:
+    - howard_openid_connect_windows_aad
+id: howard_standard_sso
+label: 'Howard Standard SSO'
+plugin: windows_aad
+settings:
+  client_id: overridden-in-settings
+  client_secret: overridden-in-settings
+  iss_allowed_domains: ''
+  enable_single_sign_out: 1
+  authorization_endpoint_wa: 'https://login.microsoftonline.com/02ac0c07-b75f-46bf-9b13-3630ba94bb69/oauth2/v2.0/authorize'
+  token_endpoint_wa: 'https://login.microsoftonline.com/02ac0c07-b75f-46bf-9b13-3630ba94bb69/oauth2/v2.0/tokenAdministrator|810455f5-f787-42b4-b81b-e3'
+  map_ad_groups_to_roles: 0
+  group_mapping:
+    mappings: Administrator|810455f5-f787-42b4-b81b-e3a21e2ccb9b
