@@ -7,9 +7,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [11.0.4] - 2025-07-24
+## [11.0.5] - 2025-10-06
+
+### Fixed
+
+- Added missing dependency `drupal/openid_connect: ^3.0.0-alpha` to composer.json
+- Fixed PHPCS coding standards violations
+- Corrected line length issues in source files
+- Added proper type checking for AccountInterface in WindowsAadSSOController
+- Fixed Drupal static calls in HowardWindowsAadSSORouteSubscriber
+- Improved code comments and formatting for better readability
 
 ### Changed
+
+- Updated composer.json to include openid_connect module dependency
+- Enhanced error handling with proper type checking
+- Improved code quality and standards compliance
+- Updated documentation formatting
+
+### Technical
+
+- Module now properly declares its dependency on openid_connect module
+- Fixed type mismatches in session management
+- Improved dependency injection patterns
+- Code now passes basic quality checks
+
+## [11.0.4] - 2025-07-24
+
+### Security
 
 - Updated dependency on openid_connect to require >=3.0.0-alpha in composer.json and info.yml
 - Bumped version to 11.0.4 for release
@@ -17,7 +42,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [11.0.3] - 2025-07-08
 
-### Changed
+### Infrastructure
+
 - Updated module configuration for Packagist distribution instead of drupal.org
 - Removed drupal.org specific metadata from info.yml file (project and datestamp fields)
 - Removed drupal-specific version metadata from composer.json extra section
@@ -27,6 +53,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [11.0.2] - 2025-07-07
 
 ### Added
+
 - Comprehensive documentation structure with professional-grade docs
 - Developer guide with testing and debugging information
 - API documentation with technical specifications
@@ -37,7 +64,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Complete composer.json with dependencies, scripts, and metadata
 - Session manager dependency injection for modern logout handling
 
-### Changed
+### Code Quality
+
 - Enhanced code documentation and comments in all PHP source files
 - Improved error handling and logging throughout the module
 - Updated configuration schema validation
@@ -48,6 +76,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Improved dependency injection in WindowsAadSSOController
 
 ### Fixed
+
 - PHPCS code style violations and warnings
 - Deprecated function calls replaced with modern Drupal APIs
 - Line length issues and formatting problems
@@ -56,18 +85,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Whitespace and trailing space issues
 
 ### Security
+
 - Modernized authentication handling with session manager
 - Improved logout security with proper session regeneration
 - Enhanced validation and security checks
 
 ### Enhanced
+
 - Plugin architecture documentation with comprehensive API coverage
 - Controller documentation with security considerations
 - Route subscriber documentation with dynamic routing explanations
 - Module file documentation with hook implementations
 - Error handling and logging throughout all components
 
-### Security
+### Security Guidelines
+
 - Enhanced input validation documentation
 - Improved session security guidelines
 - Added CSRF protection recommendations

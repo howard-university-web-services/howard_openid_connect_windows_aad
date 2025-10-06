@@ -35,7 +35,8 @@
     "email": "it-support@howard.edu"
   },
   "require": {
-    "php": ">=8.1"
+    "php": ">=8.1",
+    "drupal/openid_connect": "^3.0.0-alpha"
   },
   "require-dev": {
     "drupal/core-dev": "^9.0 || ^10.0 || ^11.0",

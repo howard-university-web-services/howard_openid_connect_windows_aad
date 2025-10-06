@@ -254,11 +254,14 @@ class HowardWindowsAad extends OpenIDConnectClientBase {
   public function retrieveUserInfo(string $access_token): ?array {
 
     // Get user info from microsoft graph api.
-    $endpoint = 'https://graph.microsoft.com/v1.0/me?$select=id,displayName,givenName,surname,jobTitle,mail,userPrincipalName,officeLocation,onPremisesExtensionAttributes';
+    $endpoint = 'https://graph.microsoft.com/v1.0/me?$select=id,displayName,' .
+      'givenName,surname,jobTitle,mail,userPrincipalName,officeLocation,' .
+      'onPremisesExtensionAttributes';
     $userinfo = $this->buildUserinfo($access_token, $endpoint, 'userPrincipalName', 'displayName');
 
     // TEMP LOG
-    // \Drupal::logger('howard_aad_userinfo_retrieved_from_api')->notice('<pre><code>' . print_r($userinfo, TRUE) . '</code></pre>');.
+    // \Drupal::logger('howard_aad_userinfo_retrieved_from_api')
+    // ->notice('<pre><code>' . print_r($userinfo, TRUE) . '</code></pre>');
     // If AD group to Drupal role mapping has been enabled then attach group
     // data from a graph API if configured to do so.
     if ($this->configuration['map_ad_groups_to_roles']) {

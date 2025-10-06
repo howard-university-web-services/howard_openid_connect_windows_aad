@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 /**
  * @file
- * Contains the WindowsAadSSOController class for Azure AD Single Sign-On operations.
+ * Contains the WindowsAadSSOController class for Azure AD SSO operations.
  *
  * This file provides the controller responsible for handling authentication
  * flows for Howard University's integration with Microsoft Azure Active
@@ -18,6 +18,7 @@ declare(strict_types=1);
 
 namespace Drupal\howard_openid_connect_windows_aad\Controller;
 
+use Drupal\Core\Session\AccountInterface;
 use Drupal\Core\Controller\ControllerBase;
 use Drupal\Core\Session\AccountProxyInterface;
 use Drupal\Core\Session\SessionManagerInterface;
@@ -166,12 +167,15 @@ class WindowsAadSSOController extends ControllerBase {
       // Only log the user out if they are logged in and have a connected
       // account. Return a 200 OK in any case since all is good.
       if ($logged_in && $connected) {
-        // Modern logout using session manager instead of deprecated user_logout().
+        // Modern logout using session manager instead of deprecated
+        // user_logout().
         $this->sessionManager->regenerate();
         $anonymous_user = $this->entityTypeManager()
           ->getStorage('user')
           ->load(0);
-        $this->currentUser->setAccount($anonymous_user);
+        if ($anonymous_user instanceof AccountInterface) {
+          $this->currentUser->setAccount($anonymous_user);
+        }
       }
       return new Response('', Response::HTTP_OK);
     }
@@ -231,7 +235,9 @@ class WindowsAadSSOController extends ControllerBase {
     // Modern logout using session manager instead of deprecated user_logout().
     $this->sessionManager->regenerate();
     $anonymous_user = $this->entityTypeManager()->getStorage('user')->load(0);
-    $this->currentUser->setAccount($anonymous_user);
+    if ($anonymous_user instanceof AccountInterface) {
+      $this->currentUser->setAccount($anonymous_user);
+    }
 
     if ($connected) {
       // Redirect back to the home page once signed out.
