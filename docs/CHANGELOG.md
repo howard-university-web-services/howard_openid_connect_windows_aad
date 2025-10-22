@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [11.0.6] - 2025-10-22
+
+### Changed
+
+- Updated OpenID Connect dependency from `^3.0.0-alpha` to `^3.0` for broader compatibility
+- Updated module dependency in info.yml from `(>=3.0.0-alpha)` to `(>=3.0)`
+- Improved compatibility with stable releases of OpenID Connect module
+- Fixed route parameter name in HowardWindowsAad plugin (`client_name` to `openid_connect_client`)
+- Updated return type for error handling in `retrieveTokens()` method to return `null` instead of `false`
+
+### Technical
+
+- Better alignment with semantic versioning for dependency management
+- Enhanced compatibility with OpenID Connect 3.x stable releases
+- Improved error handling consistency across the module
+- Fixed deprecated route parameter usage
+
 ## [11.0.5] - 2025-10-06
 
 ### Fixed

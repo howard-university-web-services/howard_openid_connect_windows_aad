@@ -18,7 +18,7 @@
   ],
   "homepage": "https://github.com/howard-university-web-services/howard_openid_connect_windows_aad",
   "license": "GPL-2.0-or-later",
-  "minimum-stability": "alpha",
+  "minimum-stability": "stable",
   "prefer-stable": true,
   "authors": [
     {
@@ -36,7 +36,7 @@
   },
   "require": {
     "php": ">=8.1",
-    "drupal/openid_connect": "^3.0.0-alpha"
+    "drupal/openid_connect": "^3.0"
   },
   "require-dev": {
     "drupal/core-dev": "^9.0 || ^10.0 || ^11.0",

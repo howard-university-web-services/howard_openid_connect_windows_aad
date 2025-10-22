@@ -170,7 +170,7 @@ class HowardWindowsAad extends OpenIDConnectClientBase {
     $redirect_uri = Url::fromRoute(
       'openid_connect.redirect_controller_redirect',
       [
-        'client_name' => $this->pluginId,
+        'openid_connect_client' => $this->pluginId,
       ],
       [
         'absolute' => TRUE,
@@ -213,7 +213,7 @@ class HowardWindowsAad extends OpenIDConnectClientBase {
       ];
       $this->loggerFactory->get('howard_openid_connect_windows_aad')
         ->error('@message. Details: @error_message', $variables);
-      return FALSE;
+      return NULL;
     }
   }
 
