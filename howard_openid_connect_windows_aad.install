@@ -12,7 +12,7 @@
  * @author Howard University Web Team
  * @copyright 2024 Howard University
  * @license GPL-2.0-or-later
- * @version 11.0.2
+ * @version 11.0.7
  * @since 1.0.0
  */
 
@@ -38,4 +38,111 @@ function howard_openid_connect_windows_aad_uninstall() {
  */
 function howard_openid_connect_windows_aad_update_8001() {
   \Drupal::service('config.installer')->installDefaultConfig('module', 'howard_openid_connect_windows_aad');
+}
+
+/**
+ * Migrate from howard_standard_sso to windows_aad client configuration.
+ * 
+ * This update function:
+ * 1. Creates a new windows_aad client with the same settings as howard_standard_sso
+ * 2. Disables the old howard_standard_sso client
+ * 3. Ensures the redirect URI changes from /howard_standard_sso to /windows_aad
+ * 
+ * This resolves Azure AD redirect URI mismatches and standardizes the client naming.
+ */
+function howard_openid_connect_windows_aad_update_11001() {
+  $config_factory = \Drupal::configFactory();
+  
+  // Check if howard_standard_sso client exists
+  $old_client_config = $config_factory->get('openid_connect.client.howard_standard_sso');
+  
+  if ($old_client_config->isNew()) {
+    // No old client exists, nothing to migrate
+    return t('No howard_standard_sso client found to migrate.');
+  }
+  
+  // Get the old client settings
+  $old_settings = $old_client_config->get('settings') ?? [];
+  $old_status = $old_client_config->get('status') ?? FALSE;
+  
+  // Check if windows_aad client already exists
+  $new_client_config = $config_factory->getEditable('openid_connect.client.windows_aad');
+  
+  if (!$new_client_config->isNew()) {
+    // Client already exists, just update its settings and enable it
+    $new_client_config
+      ->set('settings', $old_settings)
+      ->set('status', TRUE)
+      ->save();
+      
+    \Drupal::logger('howard_openid_connect_windows_aad')->info('Updated existing windows_aad client with howard_standard_sso settings.');
+  } else {
+    // Create new windows_aad client
+    $new_client_config
+      ->set('id', 'windows_aad')
+      ->set('label', 'Windows AAD')
+      ->set('plugin', 'windows_aad')
+      ->set('settings', $old_settings)
+      ->set('status', TRUE)
+      ->save();
+      
+    \Drupal::logger('howard_openid_connect_windows_aad')->info('Created new windows_aad client with howard_standard_sso settings.');
+  }
+  
+  // Disable the old client
+  $old_client_config_editable = $config_factory->getEditable('openid_connect.client.howard_standard_sso');
+  $old_client_config_editable
+    ->set('status', FALSE)
+    ->save();
+    
+  \Drupal::logger('howard_openid_connect_windows_aad')->info('Disabled howard_standard_sso client.');
+  
+  // Clear relevant caches
+  \Drupal::service('plugin.manager.openid_connect_client')->clearCachedDefinitions();
+  \Drupal::service('router.builder')->rebuild();
+  
+  return t('Successfully migrated from howard_standard_sso to windows_aad client. The redirect URI is now /openid-connect/windows_aad instead of /openid-connect/howard_standard_sso.');
+}
+
+/**
+ * Optional: Clean up the old howard_standard_sso client configuration entirely.
+ * 
+ * Run this after confirming the migration worked across all environments.
+ */
+function howard_openid_connect_windows_aad_update_11002() {
+  $config_factory = \Drupal::configFactory();
+  
+  // Delete the old client configuration
+  $old_client_config = $config_factory->getEditable('openid_connect.client.howard_standard_sso');
+  
+  if (!$old_client_config->isNew()) {
+    $old_client_config->delete();
+    \Drupal::logger('howard_openid_connect_windows_aad')->info('Deleted howard_standard_sso client configuration.');
+    return t('Removed howard_standard_sso client configuration.');
+  }
+  
+  return t('howard_standard_sso client configuration was already removed.');
+}
+
+/**
+ * Update for v11.0.6: Compatibility improvements for OpenID Connect 3.x stable releases.
+ * 
+ * This update ensures compatibility with the updated dependency requirements:
+ * - OpenID Connect dependency updated from ^3.0.0-alpha to ^3.0
+ * - Enhanced compatibility with stable releases
+ * - Improved error handling and route parameter fixes
+ */
+function howard_openid_connect_windows_aad_update_11006() {
+  // Clear plugin manager cache to ensure new plugin definitions are loaded
+  \Drupal::service('plugin.manager.openid_connect_client')->clearCachedDefinitions();
+  
+  // Rebuild routes to ensure updated route parameters are recognized
+  \Drupal::service('router.builder')->rebuild();
+  
+  // Clear all caches to ensure updated code is loaded
+  drupal_flush_all_caches();
+  
+  \Drupal::logger('howard_openid_connect_windows_aad')->info('Updated module for OpenID Connect 3.x stable compatibility (v11.0.6).');
+  
+  return t('Successfully updated Howard OpenID Connect Windows AAD module for enhanced OpenID Connect 3.x compatibility.');
 }

@@ -41,7 +41,7 @@ use GuzzleHttp\Exception\RequestException;
  *
  * @OpenIDConnectClient(
  *   id = "windows_aad",
- *   label = @Translation("Howard Windows Azure AD")
+ *   label = @Translation("Howard Standard SSO")
  * )
  *
  * @see https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-protocols-oidc

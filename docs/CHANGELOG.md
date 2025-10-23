@@ -7,6 +7,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [11.0.7] - 2025-10-23
+
+### Added
+
+- New update function `howard_openid_connect_windows_aad_update_11006()` for v11.0.6 compatibility improvements
+- Enhanced cache clearing and plugin reloading during updates
+- Improved update documentation and logging
+
+### Changed
+
+- Renamed update functions from `update_9001` and `update_9002` to `update_11001` and `update_11002` to align with Drupal 11.x versioning conventions
+- Updated install file version documentation
+
+### Technical
+
+- Added cache clearing for plugin manager to ensure updated definitions are loaded
+- Enhanced route rebuilding during module updates
+- Comprehensive cache flushing to ensure compatibility with OpenID Connect 3.x changes
+- Proper update function numbering for Drupal 11.x compatibility
+
+### Maintenance
+
+- Improved update hooks for better module upgrade experience
+- Enhanced logging for troubleshooting update processes
+- Aligned update function naming with module version
+
 ## [11.0.6] - 2025-10-22
 
 ### Changed
