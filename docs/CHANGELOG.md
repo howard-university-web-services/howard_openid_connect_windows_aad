@@ -7,6 +7,40 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [11.0.8] - 2025-10-30
+
+### Added
+
+- New `getScopes()` method to explicitly define required OAuth2 scopes for Microsoft Graph API
+- Enhanced logging for missing `onPremisesExtensionAttributes` to aid in troubleshooting Azure AD permissions
+- Comprehensive PHPDoc documentation for all methods with detailed parameter and return value descriptions
+
+### Changed
+
+- Always use the full Microsoft Graph API endpoint with explicit field selection to ensure extension attributes are retrieved
+- Improved error logging with more descriptive messages including API endpoint URLs
+- Enhanced user information retrieval with better validation and fallback handling
+- Cleaned up temporary debugging code and improved code maintainability
+
+### Fixed
+
+- Fixed Graph API endpoint usage to consistently request `onPremisesExtensionAttributes`
+- Improved error handling in `buildUserinfo()` method with more specific error messages
+- Enhanced logging context with URL information for better debugging
+
+### Technical
+
+- Added explicit OAuth2 scope definitions: `openid`, `profile`, `email`, `User.Read`, `Directory.Read.All`
+- Improved Microsoft Graph API integration with consistent endpoint usage
+- Enhanced error logging throughout the authentication flow
+- Better validation of Azure AD response data
+
+### Security
+
+- Ensured proper scope requests for sensitive directory information
+- Enhanced validation of user profile data from Azure AD
+- Improved error handling to prevent information disclosure
+
 ## [11.0.7] - 2025-10-23
 
 ### Added

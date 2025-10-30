@@ -135,6 +135,25 @@ class HowardWindowsAad extends OpenIDConnectClientBase {
   }
 
   /**
+   * Returns the scopes required for this OpenID Connect client.
+   *
+   * This method ensures that the proper Microsoft Graph API scopes are
+   * requested to retrieve user extension attributes and directory information.
+   *
+   * @return array
+   *   An array of OAuth2 scopes required for full functionality.
+   */
+  public function getScopes(): array {
+    return [
+      'openid',
+      'profile',
+      'email',
+      'User.Read',
+      'Directory.Read.All',
+    ];
+  }
+
+  /**
    * Exchanges authorization code for access and ID tokens.
    *
    * This method implements the OAuth2 authorization code flow by exchanging
@@ -259,9 +278,14 @@ class HowardWindowsAad extends OpenIDConnectClientBase {
       'onPremisesExtensionAttributes';
     $userinfo = $this->buildUserinfo($access_token, $endpoint, 'userPrincipalName', 'displayName');
 
-    // TEMP LOG
-    // \Drupal::logger('howard_aad_userinfo_retrieved_from_api')
-    // ->notice('<pre><code>' . print_r($userinfo, TRUE) . '</code></pre>');
+    // Check if extension attributes were returned and log any issues.
+    if (!isset($userinfo['onPremisesExtensionAttributes'])) {
+      \Drupal::logger('howard_openid_connect_windows_aad')
+        ->warning('onPremisesExtensionAttributes not returned by Graph API for user @user. Check Azure AD app permissions.', [
+          '@user' => $userinfo['userPrincipalName'] ?? 'unknown',
+        ]);
+    }
+
     // If AD group to Drupal role mapping has been enabled then attach group
     // data from a graph API if configured to do so.
     if ($this->configuration['map_ad_groups_to_roles']) {
@@ -310,6 +334,12 @@ class HowardWindowsAad extends OpenIDConnectClientBase {
   private function buildUserinfo($access_token, $url, $upn, $name) {
     $profile_data = [];
 
+    // Always use the full Graph API endpoint to ensure we get extension
+    // attributes.
+    $full_url = 'https://graph.microsoft.com/v1.0/me?$select=id,displayName,' .
+      'givenName,surname,jobTitle,mail,userPrincipalName,officeLocation,' .
+      'onPremisesExtensionAttributes';
+
     // Perform the request.
     $options = [
       'method' => 'GET',
@@ -321,11 +351,12 @@ class HowardWindowsAad extends OpenIDConnectClientBase {
     $client = $this->httpClient;
 
     try {
-      $response = $client->get($url, $options);
+      $response = $client->get($full_url, $options);
       $response_data = (string) $response->getBody();
 
       // Profile Information.
       $profile_data = json_decode($response_data, TRUE);
+
       $profile_data['name'] = $profile_data[$name];
 
       // Override username with upn alias.
@@ -355,9 +386,10 @@ class HowardWindowsAad extends OpenIDConnectClientBase {
     catch (RequestException $e) {
       $variables = [
         '@error_message' => $e->getMessage(),
+        '@url' => $full_url,
       ];
       $this->loggerFactory->get('howard_openid_connect_windows_aad')
-        ->error('Could not retrieve user profile information. Details: @error_message', $variables);
+        ->error('Could not retrieve user profile information from @url. Details: @error_message', $variables);
     }
 
     return $profile_data;
