@@ -1,7 +1,7 @@
 name: Howard OpenID Connect Windows Azure Active Directory
 description: 'Professional Drupal module providing seamless integration between Drupal and Microsoft Azure Active Directory through OpenID Connect, specifically customized for Howard University authentication requirements.'
 core_version_requirement: ^11
-version: '11.0.8'
+version: '11.0.9'
 package: 'Howard University'
 type: module
 dependencies:

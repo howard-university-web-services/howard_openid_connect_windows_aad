@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [11.0.9] - 2025-10-30
+
+### Fixed
+
+- Improved group mapping condition check to use `!empty()` instead of direct array access
+- Fixed potential undefined index warnings in group mapping configuration
+- Corrected code indentation to comply with Drupal coding standards
+
+### Technical
+
+- Enhanced error prevention in group mapping functionality
+- Better validation of configuration array values
+- Improved code quality and standards compliance
+
 ## [11.0.8] - 2025-10-30
 
 ### Added
