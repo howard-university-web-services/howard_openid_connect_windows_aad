@@ -25,7 +25,7 @@
  * @author Howard University Web Team
  * @copyright 2024 Howard University
  * @license GPL-2.0-or-later
- * @version 11.0.2
+ * @version 11.0.10
  * @since 1.0.0
  *
  * @see https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-protocols-oidc
@@ -121,28 +121,38 @@ function _howard_openid_connect_windows_aad_form_submit_refresh_routes(&$form, F
  */
 function howard_openid_connect_windows_aad_openid_connect_userinfo_save(UserInterface $account, array $context) {
 
-  if ($context['plugin_id'] !== 'windows_aad' || (!isset($context['user_data']['groups']) && !isset($context['userinfo']['groups']['value']))) {
+  if ($context['plugin_id'] !== 'windows_aad') {
     return;
+  }
+
+  // If no groups in context, try to fetch them via Microsoft Graph API
+  if (!isset($context['user_data']['groups']) && !isset($context['userinfo']['groups']['value'])) {
+    // Fetch groups via Microsoft Graph API
+    $groups_from_api = _howard_openid_connect_windows_aad_fetch_user_groups($context, $account);
+    if (!empty($groups_from_api)) {
+      // Add fetched groups to context for processing
+      $context['user_data']['groups'] = $groups_from_api;
+    }
   }
 
   try {
     // Ensure windows_aad auth is enabled and configured for group mapping.
-    $configuration = \Drupal::config('openid_connect.settings.windows_aad');
+    $configuration = \Drupal::config('openid_connect.client.windows_aad');
     $settings = $configuration->get('settings');
     $aad_enabled = (bool) $configuration->get('enabled');
+    
     if (!$aad_enabled || !$settings['map_ad_groups_to_roles']) {
       return;
     }
   }
   catch (Exception $exception) {
-    // Not likely to happen but assume windows_aad is not enabled if it does.
+    \Drupal::logger('howard_openid_connect_windows_aad')->error('Exception in config check: @message', ['@message' => $exception->getMessage()]);
     return;
   }
 
   // Check to see if we have changed email data, O365_connect doesn't
   // give us the possibility to add a mapping for it, so we do the change now.
   if ($account && ($account->getEmail() != $context['user_data']['email'])) {
-    \Drupal::logger('howard_feeds')->notice('email not same');
     $account->setEmail($context['user_data']['email']);
   }
 
@@ -218,6 +228,11 @@ function howard_openid_connect_windows_aad_openid_connect_userinfo_save(UserInte
         // If any of the mappings match the user's groups then the user
         // should be granted the mapped role. We also unblock the account.
         if (array_intersect($values, $groups)) {
+          // Log successful group mapping for production monitoring
+          \Drupal::logger('howard_openid_connect_windows_aad')->notice('User @user matched Azure AD group mapping and will receive role @role', [
+            '@user' => $account->getAccountName(),
+            '@role' => $key,
+          ]);
 
           // Assign Mapped role.
           $mapped_roles[$key] = $key;
@@ -357,4 +372,89 @@ function howard_openid_connect_windows_aad_form_alter(&$form, &$form_state, $for
     }
   }
 
+}
+
+/**
+ * Fetches user groups from Microsoft Graph API.
+ *
+ * This function makes an authenticated request to the Microsoft Graph API
+ * to retrieve the groups that a user belongs to. It uses the access token
+ * from the OpenID Connect authentication context.
+ *
+ * @param array $context
+ *   The OpenID Connect context containing tokens and user data.
+ * @param \Drupal\user\UserInterface $account
+ *   The Drupal user account.
+ *
+ * @return array
+ *   An array of group IDs that the user belongs to.
+ */
+function _howard_openid_connect_windows_aad_fetch_user_groups(array $context, UserInterface $account): array {
+  $groups = [];
+  
+  try {
+    // Extract the access token from the context
+    $access_token = $context['tokens']['access_token'] ?? null;
+    if (!$access_token) {
+      \Drupal::logger('howard_openid_connect_windows_aad')->info('No access token available for Graph API call, skipping group fetch for user @user', [
+        '@user' => $account->getAccountName(),
+      ]);
+      return $groups;
+    }
+    
+    // Get the user's object ID from the user_data
+    $user_oid = $context['user_data']['oid'] ?? null;
+    if (!$user_oid) {
+      \Drupal::logger('howard_openid_connect_windows_aad')->info('No user OID available for Graph API call, skipping group fetch for user @user', [
+        '@user' => $account->getAccountName(),
+      ]);
+      return $groups;
+    }
+    
+    // Microsoft Graph API endpoint to get user's group memberships
+    $graph_url = "https://graph.microsoft.com/v1.0/users/{$user_oid}/memberOf?\$select=id,displayName";
+    
+    // Make the API request
+    $client = \Drupal::httpClient();
+    $response = $client->get($graph_url, [
+      'headers' => [
+        'Authorization' => 'Bearer ' . $access_token,
+        'Accept' => 'application/json',
+        'Content-Type' => 'application/json',
+      ],
+      'timeout' => 10,
+    ]);
+    
+    if ($response->getStatusCode() === 200) {
+      $data = json_decode($response->getBody()->getContents(), TRUE);
+      
+      if (isset($data['value']) && is_array($data['value'])) {
+        foreach ($data['value'] as $group) {
+          if (isset($group['id'])) {
+            // Store both the ID and display name for flexibility
+            $groups[$group['id']] = $group['id'];
+            if (isset($group['displayName'])) {
+              $groups[$group['displayName']] = $group['displayName'];
+            }
+          }
+        }
+        
+        \Drupal::logger('howard_openid_connect_windows_aad')->info('Successfully fetched @count groups from Microsoft Graph API for user @user', [
+          '@count' => count($data['value']),
+          '@user' => $account->getAccountName(),
+        ]);
+      }
+    } else {
+      \Drupal::logger('howard_openid_connect_windows_aad')->error('Graph API request failed with status @status', [
+        '@status' => $response->getStatusCode(),
+      ]);
+    }
+    
+  } catch (Exception $e) {
+    \Drupal::logger('howard_openid_connect_windows_aad')->error('Exception during Graph API call: @message', [
+      '@message' => $e->getMessage(),
+    ]);
+  }
+  
+  return $groups;
 }

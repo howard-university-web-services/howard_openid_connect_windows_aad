@@ -627,6 +627,72 @@ class AzureAdIntegrationTest extends BrowserTestBase {
 }
 ```
 
+## Module Functions
+
+### Group Fetching via Microsoft Graph API
+
+#### _howard_openid_connect_windows_aad_fetch_user_groups()
+
+Fetches user group memberships directly from Microsoft Graph API when groups are not available in the authentication context.
+
+**Function Signature**:
+```php
+function _howard_openid_connect_windows_aad_fetch_user_groups(array $context, UserInterface $account): array
+```
+
+**Parameters**:
+- `$context`: OpenID Connect authentication context containing tokens and user data
+- `$account`: Drupal user account being processed
+
+**Returns**:
+- `array`: Array of group IDs and display names the user belongs to
+- Empty array if tokens unavailable or API call fails
+
+**Example Usage**:
+```php
+// Called automatically during user info save process
+$groups = _howard_openid_connect_windows_aad_fetch_user_groups($context, $account);
+
+// Example return value
+[
+  'group-uuid-1' => 'group-uuid-1',
+  'Admin Group' => 'Admin Group',
+  'group-uuid-2' => 'group-uuid-2',
+  'Faculty' => 'Faculty',
+]
+```
+
+**Graph API Integration**:
+- Uses Microsoft Graph API endpoint: `https://graph.microsoft.com/v1.0/users/{user_id}/memberOf`
+- Requires access token with appropriate scopes
+- Gracefully handles missing tokens or API failures
+- Includes comprehensive error logging for debugging
+
+**Error Handling**:
+The function implements robust error handling:
+- Logs informational messages when tokens are unavailable
+- Logs errors for API failures with status codes
+- Logs exceptions with detailed error messages
+- Returns empty array on any failure to allow normal authentication flow
+
+**Security Considerations**:
+- Validates access token availability before making API calls
+- Uses secure HTTP client with proper headers
+- Implements timeout protection (10-second limit)
+- Follows principle of graceful degradation
+
+### Hook Implementations
+
+#### howard_openid_connect_windows_aad_openid_connect_userinfo_save()
+
+Processes user information after successful Azure AD authentication, including automatic group fetching via Graph API when groups are missing from the authentication context.
+
+**Enhanced Features in v11.0.10**:
+- Automatic fallback to Microsoft Graph API for group retrieval
+- Improved error handling and logging
+- Better configuration path handling
+- Enhanced user experience with automatic account activation
+
 ## Performance Considerations
 
 ### Caching Strategy

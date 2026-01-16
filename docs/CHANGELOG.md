@@ -7,6 +7,44 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [11.0.10] - 2026-01-16
+
+### Added
+
+- New Microsoft Graph API integration for fetching user group memberships
+- Direct Graph API calls when group information is not available in authentication context
+- `_howard_openid_connect_windows_aad_fetch_user_groups()` function for on-demand group retrieval
+- Enhanced error handling and logging for Graph API operations
+- Automatic fallback to Graph API when groups are missing from OpenID Connect response
+- Graceful handling when access tokens are not available
+
+### Changed
+
+- Updated configuration path from `openid_connect.settings.windows_aad` to `openid_connect.client.windows_aad`
+- Improved group fetching logic with automatic API fallback
+- Enhanced logging with more detailed information for Graph API calls
+- Better error handling in configuration access
+- Enhanced user registration form security and user experience for non-administrator users
+- Improved form field management and access control in user registration process
+- Better handling of form elements and messaging for SSO-only registration workflow
+
+### Improved
+
+- Refined user registration form alterations to provide clearer guidance for non-admin users
+- Updated form field access controls for better security and user experience
+- Enhanced messaging system for users attempting to create local accounts
+- Graph API calls now skip gracefully when tokens are unavailable instead of throwing errors
+
+### Technical
+
+- Added proper HTTP client usage for Graph API requests
+- Implemented proper token handling for Graph API authentication
+- Added comprehensive error logging for debugging Graph API issues
+- Improved group data processing and storage flexibility
+- Improved form validation and field management in `howard_openid_connect_windows_aad_form_alter()`
+- Better separation of administrator and regular user registration workflows
+- Enhanced form field access control implementation
+
 ## [11.0.9] - 2025-10-30
 
 ### Fixed

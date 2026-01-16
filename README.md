@@ -1,7 +1,7 @@
 # Howard OpenID Connect Windows Azure Active Directory
 
 [![License](https://img.shields.io/badge/license-GPL%202%2B-blue.svg)](LICENSE)
-[![Drupal](https://img.shields.io/badge/drupal-9.x%20%7C%2010.x-blue.svg)](https://www.drupal.org)
+[![Drupal](https://img.shields.io/badge/drupal-9.x%20%7C%2010.x%20%7C%2011.x-blue.svg)](https://www.drupal.org)
 [![PHP](https://img.shields.io/badge/php-8.1%2B-blue.svg)](https://php.net)
 
 A professional Drupal module providing seamless integration between Drupal and Microsoft Azure Active Directory through OpenID Connect, specifically customized for Howard University's authentication requirements.
@@ -39,6 +39,8 @@ A professional Drupal module providing seamless integration between Drupal and M
 - **Automatic user creation** from Azure AD profiles
 - **Profile synchronization** with Azure AD data
 - **Group-based role mapping** from Azure AD to Drupal roles
+- **Microsoft Graph API integration** for enhanced group fetching
+- **Automatic fallback** to Graph API when groups are missing from authentication
 - **Customizable user field mapping**
 
 ### 🛠 Howard University Customizations
@@ -83,7 +85,7 @@ This module extends Drupal's OpenID Connect ecosystem with:
 ## Requirements
 
 ### System Requirements
-- **Drupal:** 9.x or 10.x
+- **Drupal:** 9.x, 10.x, or 11.x
 - **PHP:** 8.1 or higher
 - **Database:** MySQL 5.7+, PostgreSQL 10+, or MariaDB 10.3+
 - **Web Server:** Apache 2.4+ or Nginx 1.12+
