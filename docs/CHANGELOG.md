@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [11.0.11] - 2026-07-23
+
+### Fixed
+
+- **`howard_openid_connect_windows_aad.info.yml`**: Restored `openid_connect:openid_connect` dependency declaration — it had been commented out to suppress a version warning caused by an invalid `>=3.0` constraint in the original syntax. The constraint has been removed; the dependency is now declared correctly as `openid_connect:openid_connect`.
+
+### Changed
+
+- **`.gitignore`**: Expanded with standard ignore patterns — `.DS_Store`, `.idea/`, `.vscode/`, `*.log`, `*.bak`, `tmp/`, `temp/`, `.env`, `settings.local.php`, `services.local.yml`.
+
 ## [11.0.10] - 2026-01-16
 
 ### Added

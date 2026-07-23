@@ -1,2 +1,17 @@
 # Ignore Composer dependencies
 /vendor/
+
+# Ignore development and temporary files
+.DS_Store
+.idea/
+.vscode/
+*.log
+*.bak
+*~
+tmp/
+temp/
+.env
+
+# Ignore Drupal files that should not be in version control
+settings.local.php
+services.local.yml
